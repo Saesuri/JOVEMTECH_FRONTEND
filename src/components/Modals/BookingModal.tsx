@@ -1,18 +1,27 @@
 import React, { useState } from "react";
 import axios, { AxiosError } from "axios";
+import { toast } from "sonner";
 import { type RoomShape } from "../../types/apiTypes";
 import { bookingService } from "../../services/api";
-// IMPORT AUTH CONTEXT
 import { useAuth } from "../../context/AuthContext";
+
+// SHADCN IMPORTS
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface BookingModalProps {
   room: RoomShape | null;
   isOpen: boolean;
   onClose: () => void;
-}
-
-interface BackendErrorResponse {
-  error: string;
 }
 
 const BookingModal: React.FC<BookingModalProps> = ({
@@ -23,191 +32,109 @@ const BookingModal: React.FC<BookingModalProps> = ({
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("10:00");
-  const [status, setStatus] = useState("");
-  const [isError, setIsError] = useState(false);
 
-  // 1. GET THE REAL USER FROM CONTEXT
   const { user } = useAuth();
 
-  if (!isOpen || !room) return null;
+  // If the dialog closes via clicking outside or ESC, we trigger onClose
+  const handleOpenChange = (open: boolean) => {
+    if (!open) onClose();
+  };
 
-  const handleBook = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // 2. CHECK IF USER IS LOGGED IN
+  const handleBook = async () => {
     if (!user) {
-      setIsError(true);
-      setStatus("Error: You must be logged in to book.");
+      toast.error("You must be logged in to book.");
       return;
     }
 
-    setStatus("Checking availability...");
-    setIsError(false);
+    if (!date || !startTime || !endTime) {
+      toast.error("Please fill in all fields");
+      return;
+    }
 
     const startIso = new Date(`${date}T${startTime}:00`).toISOString();
     const endIso = new Date(`${date}T${endTime}:00`).toISOString();
 
-    try {
-      await bookingService.create({
-        space_id: room.id,
-        // 3. SEND THE REAL USER ID INSTEAD OF THE DUMMY ID
-        user_id: user.id,
-        start_time: startIso,
-        end_time: endIso,
-      });
+    const promise = bookingService.create({
+      space_id: room!.id,
+      user_id: user.id,
+      start_time: startIso,
+      end_time: endIso,
+    });
 
-      setStatus("Booking Confirmed! ✅");
-      setTimeout(() => {
-        setStatus("");
-        onClose();
-      }, 1500);
-    } catch (error: unknown) {
-      setIsError(true);
-      if (axios.isAxiosError(error)) {
-        const axiosError = error as AxiosError<BackendErrorResponse>;
-        if (axiosError.response?.status === 409) {
-          setStatus("❌ Conflict: This time is already booked.");
-        } else {
-          const msg = axiosError.response?.data?.error || "Failed to book";
-          setStatus(`❌ Error: ${msg}`);
+    toast.promise(promise, {
+      loading: "Checking availability...",
+      success: () => {
+        setTimeout(() => onClose(), 500);
+        return "Booking Confirmed! ✅";
+      },
+      error: (err) => {
+        if (axios.isAxiosError(err) && err.response?.status === 409) {
+          return "Conflict: Time slot already booked ❌";
         }
-      } else {
-        setStatus("❌ An unexpected error occurred.");
-        console.error(error);
-      }
-    }
+        return "Failed to book ❌";
+      },
+    });
   };
 
-  // Styles
-  const overlayStyle: React.CSSProperties = {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 1000,
-  };
-  const modalStyle: React.CSSProperties = {
-    backgroundColor: "white",
-    padding: "25px",
-    borderRadius: "8px",
-    width: "350px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-  };
+  if (!room) return null;
 
   return (
-    <div style={overlayStyle}>
-      <div style={modalStyle}>
-        <h2 style={{ marginTop: 0 }}>Book {room.name}</h2>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Book {room.name}</DialogTitle>
+          <DialogDescription>
+            Confirm the date and time for your reservation.
+          </DialogDescription>
+        </DialogHeader>
 
-        <form onSubmit={handleBook}>
-          <div style={{ marginBottom: 15 }}>
-            <label
-              style={{ display: "block", marginBottom: 5, fontWeight: "bold" }}
-            >
-              Date:
-            </label>
-            <input
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="date" className="text-right">
+              Date
+            </Label>
+            <Input
+              id="date"
               type="date"
-              required
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              style={{ width: "100%", padding: "8px" }}
+              className="col-span-3"
             />
           </div>
-
-          <div style={{ display: "flex", gap: "10px", marginBottom: 20 }}>
-            <div style={{ flex: 1 }}>
-              <label
-                style={{
-                  display: "block",
-                  marginBottom: 5,
-                  fontWeight: "bold",
-                }}
-              >
-                Start:
-              </label>
-              <input
-                type="time"
-                required
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                style={{ width: "100%", padding: "8px" }}
-              />
-            </div>
-            <div style={{ flex: 1 }}>
-              <label
-                style={{
-                  display: "block",
-                  marginBottom: 5,
-                  fontWeight: "bold",
-                }}
-              >
-                End:
-              </label>
-              <input
-                type="time"
-                required
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                style={{ width: "100%", padding: "8px" }}
-              />
-            </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="start" className="text-right">
+              Start
+            </Label>
+            <Input
+              id="start"
+              type="time"
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+              className="col-span-3"
+            />
           </div>
-
-          {status && (
-            <div
-              style={{
-                marginBottom: 15,
-                padding: "10px",
-                backgroundColor: isError ? "#ffebee" : "#e8f5e9",
-                color: isError ? "#c62828" : "#2e7d32",
-                borderRadius: "4px",
-                fontSize: "14px",
-              }}
-            >
-              {status}
-            </div>
-          )}
-
-          <div
-            style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}
-          >
-            <button
-              type="button"
-              onClick={onClose}
-              style={{
-                padding: "10px 15px",
-                border: "1px solid #ddd",
-                background: "transparent",
-                cursor: "pointer",
-                borderRadius: "4px",
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              style={{
-                padding: "10px 20px",
-                backgroundColor: "#0066cc",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontWeight: "bold",
-              }}
-            >
-              Confirm Booking
-            </button>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="end" className="text-right">
+              End
+            </Label>
+            <Input
+              id="end"
+              type="time"
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+              className="col-span-3"
+            />
           </div>
-        </form>
-      </div>
-    </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button onClick={handleBook}>Confirm Booking</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

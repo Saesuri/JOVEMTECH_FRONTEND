@@ -1,6 +1,37 @@
 import React, { useState } from "react";
 import { type RoomShape } from "../../types/apiTypes";
 
+// SHADCN IMPORTS
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Trash2 } from "lucide-react";
+
 interface RoomEditModalProps {
   room: RoomShape | null;
   isOpen: boolean;
@@ -9,6 +40,7 @@ interface RoomEditModalProps {
     id: string,
     updates: { name: string; capacity: number; type: string }
   ) => void;
+  onDelete: (id: string) => void;
 }
 
 const RoomEditModal: React.FC<RoomEditModalProps> = ({
@@ -16,146 +48,150 @@ const RoomEditModal: React.FC<RoomEditModalProps> = ({
   isOpen,
   onClose,
   onSave,
+  onDelete,
 }) => {
-  // FIX: Initialize state directly from props.
-  // We rely on the Parent component passing a unique 'key' to reset this component.
+  // Initialize state directly from props (relies on 'key' prop in parent to reset)
   const [name, setName] = useState(room?.name || "");
-  const [capacity, setCapacity] = useState(10); // Default, or add this to RoomShape later
+  const [capacity, setCapacity] = useState(10);
   const [type, setType] = useState("meeting_room");
 
-  if (!isOpen || !room) return null;
+  // State for the confirmation popup
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+
+  const handleOpenChange = (open: boolean) => {
+    // Only close if we aren't showing the delete alert
+    if (!open && !showDeleteAlert) onClose();
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(room.id, { name, capacity, type });
-    onClose();
+    if (room) {
+      onSave(room.id, { name, capacity, type });
+      onClose();
+    }
   };
 
-  // Styles
-  const overlayStyle: React.CSSProperties = {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 1000,
+  // 1. Triggered when clicking "Delete" button
+  const handleDeleteClick = () => {
+    setShowDeleteAlert(true);
   };
 
-  const modalStyle: React.CSSProperties = {
-    backgroundColor: "white",
-    padding: "20px",
-    borderRadius: "8px",
-    width: "300px",
-    boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
+  // 2. Triggered when clicking "Yes, Delete" in the alert
+  const confirmDelete = () => {
+    if (room) {
+      onDelete(room.id);
+      setShowDeleteAlert(false);
+      onClose();
+    }
   };
+
+  if (!room) return null;
 
   return (
-    <div style={overlayStyle}>
-      <div style={modalStyle}>
-        <h3 style={{ marginTop: 0 }}>Edit Room Details</h3>
-        <form onSubmit={handleSubmit}>
-          {/* Name Input */}
-          <div style={{ marginBottom: 15 }}>
-            <label
-              style={{ display: "block", marginBottom: 5, fontSize: "14px" }}
-            >
-              Room Name:
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "8px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-              }}
-            />
-          </div>
+    <>
+      {/* MAIN EDIT MODAL */}
+      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Room Details</DialogTitle>
+            <DialogDescription>
+              Modify properties or delete this space.
+            </DialogDescription>
+          </DialogHeader>
 
-          {/* Capacity Input */}
-          <div style={{ marginBottom: 15 }}>
-            <label
-              style={{ display: "block", marginBottom: 5, fontSize: "14px" }}
-            >
-              Capacity (People):
-            </label>
-            <input
-              type="number"
-              value={capacity}
-              onChange={(e) => setCapacity(Number(e.target.value))}
-              style={{
-                width: "100%",
-                padding: "8px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-              }}
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Name
+              </Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
 
-          {/* Type Select */}
-          <div style={{ marginBottom: 15 }}>
-            <label
-              style={{ display: "block", marginBottom: 5, fontSize: "14px" }}
-            >
-              Type:
-            </label>
-            <select
-              value={type}
-              onChange={(e) => setType(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "8px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-              }}
-            >
-              <option value="meeting_room">Meeting Room</option>
-              <option value="lab">Computer Lab</option>
-              <option value="auditorium">Auditorium</option>
-              <option value="office">Shared Office</option>
-              <option value="hall">Hall/Corridor</option>
-            </select>
-          </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="capacity" className="text-right">
+                Capacity
+              </Label>
+              <Input
+                id="capacity"
+                type="number"
+                value={capacity}
+                onChange={(e) => setCapacity(Number(e.target.value))}
+                className="col-span-3"
+              />
+            </div>
 
-          <div
-            style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}
-          >
-            <button
-              type="button"
-              onClick={onClose}
-              style={{
-                padding: "8px 12px",
-                background: "transparent",
-                border: "1px solid #ccc",
-                borderRadius: "4px",
-                cursor: "pointer",
-              }}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="type" className="text-right">
+                Type
+              </Label>
+              <div className="col-span-3">
+                <Select value={type} onValueChange={setType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="meeting_room">Meeting Room</SelectItem>
+                    <SelectItem value="lab">Computer Lab</SelectItem>
+                    <SelectItem value="auditorium">Auditorium</SelectItem>
+                    <SelectItem value="office">Shared Office</SelectItem>
+                    <SelectItem value="hall">Hall/Corridor</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <DialogFooter className="flex justify-between sm:justify-between w-full mt-4">
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={handleDeleteClick}
+                className="gap-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete
+              </Button>
+
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={onClose}>
+                  Cancel
+                </Button>
+                <Button type="submit">Save Changes</Button>
+              </div>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* CONFIRMATION ALERT DIALOG */}
+      <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-red-600">
+              Are you absolutely sure?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              room
+              <strong> "{room.name}"</strong> and remove it from the floor plan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
             >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              style={{
-                padding: "8px 12px",
-                backgroundColor: "#2c3e50",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-              }}
-            >
-              Save Changes
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+              Yes, Delete Room
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
 

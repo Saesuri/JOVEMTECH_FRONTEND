@@ -1,27 +1,43 @@
-import { useState, useEffect, type ChangeEvent } from "react";
+import { useState, useEffect } from "react";
 import GridCanvas from "../components/MapEditor/GridCanvas";
 import BookingModal from "../components/Modals/BookingModal";
 import { floorService, spaceService, bookingService } from "../services/api";
 import { mapSpacesToShapes } from "../utils/mapHelpers";
 import type { Floor, RoomShape } from "../types/apiTypes";
 
+// SHADCN IMPORTS
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+
 function UserBooking() {
-  // --- Data State ---
+  // Data State
   const [rooms, setRooms] = useState<RoomShape[]>([]);
   const [floors, setFloors] = useState<Floor[]>([]);
   const [selectedFloorId, setSelectedFloorId] = useState<string>("");
 
-  // --- Availability State ---
+  // Availability State
   const [occupiedIds, setOccupiedIds] = useState<string[]>([]);
-  // Default to Today, 9:00 - 10:00
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("10:00");
-
-  // This state is used to force-reload the availability from the server
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // --- Modal State ---
+  // Modal State
   const [selectedRoom, setSelectedRoom] = useState<RoomShape | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -55,32 +71,27 @@ function UserBooking() {
     loadSpaces();
   }, [selectedFloorId]);
 
-  // 3. Check Availability (Runs on Date change OR when refreshKey updates)
+  // 3. Check Availability
   useEffect(() => {
     const fetchOccupancy = async () => {
       if (!date || !startTime || !endTime) return;
-
       try {
-        // Construct ISO timestamps
         const startIso = new Date(`${date}T${startTime}:00`).toISOString();
         const endIso = new Date(`${date}T${endTime}:00`).toISOString();
+        if (startIso >= endIso) return;
 
-        if (startIso >= endIso) return; // Invalid range
-
-        console.log("Checking occupancy...");
         const busyIds = await bookingService.getOccupied(startIso, endIso);
         setOccupiedIds(busyIds);
       } catch (error) {
         console.error("Error checking occupancy:", error);
       }
     };
-
     fetchOccupancy();
-  }, [date, startTime, endTime, selectedFloorId, refreshKey]); // <--- Added refreshKey dependency
+  }, [date, startTime, endTime, selectedFloorId, refreshKey]);
 
   const handleRoomClick = (room: RoomShape) => {
     if (occupiedIds.includes(room.id)) {
-      alert("This room is occupied during the selected time.");
+      // We can use a Toast here instead of alert if we want, but visually red is enough usually
       return;
     }
     setSelectedRoom(room);
@@ -89,137 +100,116 @@ function UserBooking() {
 
   const handleModalClose = () => {
     setIsModalOpen(false);
-    // Incrementing this number forces the 'useEffect' above to run again,
-    // refreshing the Red/Green colors immediately after booking.
     setRefreshKey((prev) => prev + 1);
   };
 
   return (
-    <div style={{ padding: "20px", fontFamily: "Segoe UI, sans-serif" }}>
-      {/* Filters Header */}
-      <div
-        style={{
-          marginBottom: 20,
-          padding: "20px",
-          backgroundColor: "#f5f5f5",
-          borderRadius: "8px",
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "20px",
-          alignItems: "flex-end",
-        }}
-      >
-        {/* Floor Select */}
-        <div>
-          <label
-            style={{ display: "block", marginBottom: 5, fontWeight: "bold" }}
-          >
-            Floor:
-          </label>
-          <select
-            value={selectedFloorId}
-            onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-              setSelectedFloorId(e.target.value)
-            }
-            style={{ padding: "8px", fontSize: "16px", minWidth: "150px" }}
-          >
-            {floors.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.name}
-              </option>
-            ))}
-          </select>
-        </div>
+    <div className="container mx-auto p-6 space-y-6">
+      {/* 1. CONTROL PANEL CARD */}
+      <Card className="shadow-sm">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Book a Space</CardTitle>
+              <CardDescription>
+                Select a floor, date, and time to find available rooms.
+              </CardDescription>
+            </div>
 
-        {/* Date Filter */}
-        <div>
-          <label
-            style={{ display: "block", marginBottom: 5, fontWeight: "bold" }}
-          >
-            Date:
-          </label>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            style={{ padding: "8px", fontSize: "16px" }}
-          />
-        </div>
-
-        {/* Time Filters */}
-        <div>
-          <label
-            style={{ display: "block", marginBottom: 5, fontWeight: "bold" }}
-          >
-            From:
-          </label>
-          <input
-            type="time"
-            value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
-            style={{ padding: "8px", fontSize: "16px" }}
-          />
-        </div>
-        <div>
-          <label
-            style={{ display: "block", marginBottom: 5, fontWeight: "bold" }}
-          >
-            To:
-          </label>
-          <input
-            type="time"
-            value={endTime}
-            onChange={(e) => setEndTime(e.target.value)}
-            style={{ padding: "8px", fontSize: "16px" }}
-          />
-        </div>
-
-        {/* Legend */}
-        <div style={{ display: "flex", gap: "15px", marginLeft: "auto" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-            <div
-              style={{
-                width: 20,
-                height: 20,
-                background: "#ccffcc",
-                border: "2px solid #009900",
-              }}
-            ></div>
-            <span>Available</span>
+            {/* Legend */}
+            <div className="flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-green-200 border border-green-600"></div>
+                <span className="text-muted-foreground">Available</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-red-200 border border-red-600"></div>
+                <span className="text-muted-foreground">Occupied</span>
+              </div>
+            </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-            <div
-              style={{
-                width: 20,
-                height: 20,
-                background: "#ffcccc",
-                border: "2px solid #cc0000",
-              }}
-            ></div>
-            <span>Occupied</span>
+        </CardHeader>
+
+        <Separator />
+
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {/* Floor Select (Shadcn) */}
+            <div className="space-y-2">
+              <Label>Floor Level</Label>
+              <Select
+                onValueChange={setSelectedFloorId}
+                value={selectedFloorId}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a floor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {floors.map((f) => (
+                    <SelectItem key={f.id} value={f.id}>
+                      {f.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Date Input */}
+            <div className="space-y-2">
+              <Label>Date</Label>
+              <Input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
+            </div>
+
+            {/* Time Inputs */}
+            <div className="space-y-2">
+              <Label>Start Time</Label>
+              <Input
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>End Time</Label>
+              <Input
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+              />
+            </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* 2. MAP AREA */}
+      <div className="flex justify-center border rounded-lg bg-card p-4 shadow-sm overflow-hidden relative">
+        {/* We center the canvas inside this container */}
+        <GridCanvas
+          width={800}
+          height={600}
+          rectangles={rooms}
+          setRectangles={() => {}}
+          tool="select"
+          readOnly={true}
+          onRoomClick={handleRoomClick}
+          occupiedIds={occupiedIds}
+        />
+
+        {/* Helper text overlay at bottom */}
+        <div className="absolute bottom-4 right-4 text-xs text-muted-foreground bg-background/80 p-2 rounded backdrop-blur">
+          Click a green room to book
         </div>
       </div>
 
-      <GridCanvas
-        width={800}
-        height={600}
-        rectangles={rooms}
-        setRectangles={() => {}}
-        tool="select"
-        readOnly={true}
-        onRoomClick={handleRoomClick}
-        occupiedIds={occupiedIds}
+      <BookingModal
+        room={selectedRoom}
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
       />
-
-      {/* Booking Modal */}
-      {isModalOpen && selectedRoom && (
-        <BookingModal
-          room={selectedRoom}
-          isOpen={isModalOpen}
-          onClose={handleModalClose}
-        />
-      )}
     </div>
   );
 }

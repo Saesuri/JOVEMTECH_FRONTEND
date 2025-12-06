@@ -55,6 +55,7 @@ export interface Space {
 }
 
 export interface CreateSpaceDTO {
+  id?: string; // <--- Add this field (Optional)
   floor_id: string;
   name: string;
   type: string;
