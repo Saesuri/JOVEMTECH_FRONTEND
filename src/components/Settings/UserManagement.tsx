@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { configService } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
-// IMPORT TYPE FROM TYPES FILE
 import type { UserProfile } from "../../types/apiTypes";
 import { toast } from "sonner";
 
@@ -28,23 +27,51 @@ export function UserManagement() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const { user: currentUser } = useAuth();
 
-  useEffect(() => {
-    loadUsers();
-  }, []);
-
-  const loadUsers = async () => {
+  // 1. Helper function for manual reloading (used in error recovery)
+  const reloadUsers = async () => {
     try {
       const data = await configService.getUsers();
       setUsers(data);
     } catch (e) {
-      toast.error("Failed to load users");
+      console.error(e);
+      toast.error("Failed to reload users");
     }
   };
+
+  // 2. Effect for Initial Load
+  // We define the logic inside to avoid dependency issues and race conditions
+  useEffect(() => {
+    let isMounted = true;
+
+    const init = async () => {
+      try {
+        const data = await configService.getUsers();
+        if (isMounted) {
+          setUsers(data);
+        }
+      } catch (e) {
+        console.error(e);
+        if (isMounted) {
+          toast.error("Failed to load users");
+        }
+      }
+    };
+
+    init();
+
+    // Cleanup function to prevent setting state on unmounted component
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const toggleAdmin = async (targetUser: UserProfile) => {
     if (targetUser.id === currentUser?.id)
       return toast.error("Cannot change your own role");
+
     const newRole = targetUser.role === "admin" ? "user" : "admin";
+
+    // Optimistic Update
     setUsers((prev) =>
       prev.map((u) => (u.id === targetUser.id ? { ...u, role: newRole } : u))
     );
@@ -53,8 +80,9 @@ export function UserManagement() {
       await configService.updateUserRole(targetUser.id, newRole);
       toast.success(`User updated to ${newRole}`);
     } catch (e) {
-      toast.error("Failed");
-      loadUsers();
+      console.error(e);
+      toast.error("Failed to update role");
+      reloadUsers(); // Revert on failure
     }
   };
 

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "../config/supabaseClient";
 import { useNavigate } from "react-router-dom";
-// IMPORT USER SERVICE HERE
 import { userService } from "../services/api";
 import { toast } from "sonner";
 
@@ -27,6 +27,7 @@ import {
 import { BookOpen, User, Phone } from "lucide-react";
 
 const Login: React.FC = () => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
@@ -46,7 +47,7 @@ const Login: React.FC = () => {
       if (isSignUp) {
         // 1. Validate extra fields
         if (!fullName || !phone) {
-          toast.error("Please fill in all fields");
+          toast.error(t("login.messages.fillAllFields"));
           setLoading(false);
           return;
         }
@@ -56,7 +57,6 @@ const Login: React.FC = () => {
           {
             email,
             password,
-            // If you disabled email confirmation in Supabase, this logs them in immediately
           }
         );
 
@@ -64,7 +64,6 @@ const Login: React.FC = () => {
 
         if (authData.user) {
           // 3. Update the Profile row
-          // We wait a tiny bit to ensure the database trigger has finished creating the row
           await new Promise((r) => setTimeout(r, 1000));
 
           try {
@@ -73,16 +72,14 @@ const Login: React.FC = () => {
               phone,
               department,
             });
-            toast.success("Account created successfully!");
-            // If email confirmation is off, we can redirect directly
+            toast.success(t("login.messages.accountCreated"));
             navigate("/book");
           } catch (profileError) {
             console.error("Profile update failed", profileError);
-            // Even if profile fails, the user is created, so just let them know
-            toast.warning("Account created, but could not save details.");
+            toast.warning(t("login.messages.profileSaveFailed"));
           }
         } else {
-          toast.info("Check your email for the confirmation link.");
+          toast.info(t("login.messages.checkEmail"));
         }
       } else {
         // LOGIN FLOW
@@ -92,11 +89,13 @@ const Login: React.FC = () => {
         });
         if (error) throw error;
 
-        toast.success("Welcome back!");
+        toast.success(t("login.messages.welcome"));
         navigate("/book");
       }
-    } catch (error: any) {
-      toast.error(error.message || "Authentication failed");
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Authentication failed";
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -110,12 +109,10 @@ const Login: React.FC = () => {
             <BookOpen className="h-8 w-8 text-primary" />
           </div>
           <CardTitle className="text-2xl font-bold">
-            {isSignUp ? "Join CajuHub" : "Welcome Back"}
+            {isSignUp ? t("login.titleSignup") : t("login.title")}
           </CardTitle>
           <CardDescription>
-            {isSignUp
-              ? "Create your employee profile"
-              : "Sign in to manage bookings"}
+            {isSignUp ? t("login.subtitleSignup") : t("login.subtitle")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -124,7 +121,7 @@ const Login: React.FC = () => {
             {isSignUp && (
               <div className="space-y-3 animate-in slide-in-from-top-4 duration-300">
                 <div className="space-y-1">
-                  <Label>Full Name</Label>
+                  <Label>{t("login.fullName")}</Label>
                   <div className="relative">
                     <User className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -138,7 +135,7 @@ const Login: React.FC = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <Label>Phone</Label>
+                    <Label>{t("login.phone")}</Label>
                     <div className="relative">
                       <Phone className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                       <Input
@@ -150,19 +147,27 @@ const Login: React.FC = () => {
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <Label>Department</Label>
+                    <Label>{t("login.department")}</Label>
                     <Select value={department} onValueChange={setDepartment}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Faculty">
-                          Faculty (Professors)
+                          {t("login.departments.faculty")}
                         </SelectItem>
-                        <SelectItem value="IT">IT Support</SelectItem>
-                        <SelectItem value="Admin">Administration</SelectItem>
-                        <SelectItem value="HR">Human Resources</SelectItem>
-                        <SelectItem value="Student">Student Body</SelectItem>
+                        <SelectItem value="IT">
+                          {t("login.departments.it")}
+                        </SelectItem>
+                        <SelectItem value="Admin">
+                          {t("login.departments.admin")}
+                        </SelectItem>
+                        <SelectItem value="HR">
+                          {t("login.departments.hr")}
+                        </SelectItem>
+                        <SelectItem value="Student">
+                          {t("login.departments.student")}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -172,7 +177,7 @@ const Login: React.FC = () => {
 
             {/* STANDARD FIELDS */}
             <div className="space-y-1">
-              <Label>Email</Label>
+              <Label>{t("login.email")}</Label>
               <Input
                 type="email"
                 placeholder="you@school.com"
@@ -182,7 +187,7 @@ const Login: React.FC = () => {
               />
             </div>
             <div className="space-y-1">
-              <Label>Password</Label>
+              <Label>{t("login.password")}</Label>
               <Input
                 type="password"
                 value={password}
@@ -193,18 +198,16 @@ const Login: React.FC = () => {
 
             <Button className="w-full mt-2" type="submit" disabled={loading}>
               {loading
-                ? "Processing..."
+                ? t("common.processing")
                 : isSignUp
-                ? "Create Account"
-                : "Sign In"}
+                ? t("login.submitSignup")
+                : t("login.submit")}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="flex justify-center">
           <Button variant="link" onClick={() => setIsSignUp(!isSignUp)}>
-            {isSignUp
-              ? "Already have an account? Sign In"
-              : "Need an account? Sign Up"}
+            {isSignUp ? t("login.switchToLogin") : t("login.switchToSignup")}
           </Button>
         </CardFooter>
       </Card>

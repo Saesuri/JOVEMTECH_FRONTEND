@@ -24,21 +24,45 @@ import { MapPin, Power, PowerOff } from "lucide-react";
 export function RoomListSettings() {
   const [spaces, setSpaces] = useState<SpaceWithFloor[]>([]);
 
-  useEffect(() => {
-    loadSpaces();
-  }, []);
-
-  const loadSpaces = async () => {
+  // 1. Separate the Refresh Logic (for manual use)
+  const refreshSpaces = async () => {
     try {
       const data = await spaceService.getAllGlobal();
       setSpaces(data);
     } catch (e) {
-      toast.error("Failed to load rooms");
+      console.error(e);
+      toast.error("Failed to reload rooms");
     }
   };
 
+  // 2. Initial Load Effect
+  useEffect(() => {
+    let isMounted = true;
+
+    const init = async () => {
+      try {
+        const data = await spaceService.getAllGlobal();
+        if (isMounted) {
+          setSpaces(data);
+        }
+      } catch (e) {
+        console.error(e);
+        if (isMounted) {
+          toast.error("Failed to load rooms");
+        }
+      }
+    };
+
+    init();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Empty dependency array ensures this runs exactly once on mount
+
   const toggleStatus = async (room: SpaceWithFloor) => {
     const newState = !room.is_active;
+
     // Optimistic Update
     setSpaces((prev) =>
       prev.map((s) => (s.id === room.id ? { ...s, is_active: newState } : s))
@@ -48,8 +72,9 @@ export function RoomListSettings() {
       await configService.toggleRoomStatus(room.id, newState);
       toast.success(`Room ${newState ? "activated" : "set to maintenance"}`);
     } catch (e) {
+      console.error(e);
       toast.error("Failed to update status");
-      loadSpaces(); // Revert
+      refreshSpaces(); // Revert changes on error using the helper
     }
   };
 

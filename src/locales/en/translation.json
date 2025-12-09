@@ -1,0 +1,180 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "export": "Export",
+    "processing": "Processing...",
+    "status": {
+      "active": "Active",
+      "completed": "Completed",
+      "upcoming": "Upcoming",
+      "available": "Available",
+      "occupied": "Occupied",
+      "filtered": "Filtered"
+    },
+    "table": {
+      "user": "User",
+      "room": "Room",
+      "date": "Date",
+      "time": "Time",
+      "status": "Status",
+      "actions": "Actions"
+    }
+  },
+  "nav": {
+    "bookRoom": "Book a Room",
+    "myBookings": "My Bookings",
+    "editor": "Editor",
+    "dashboard": "Dashboard",
+    "config": "Config",
+    "profile": "Profile",
+    "logout": "Log out"
+  },
+  "login": {
+    "title": "Welcome back!",
+    "titleSignup": "Join CajuHUB",
+    "subtitle": "Sign in to manage your bookings",
+    "subtitleSignup": "Create your user profile",
+    "fullName": "Full Name",
+    "phone": "Phone",
+    "department": "Department",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign In",
+    "submitSignup": "Create Account",
+    "switchToSignup": "Need to create an account? Sign Up",
+    "switchToLogin": "Already have an account? Sign In",
+    "departments": {
+      "faculty": "Faculty (Professors)",
+      "it": "IT Support",
+      "admin": "Administration",
+      "hr": "Human Resources",
+      "student": "Student"
+    },
+    "messages": {
+      "fillAllFields": "Please fill in all fields.",
+      "accountCreated": "Account created successfully!",
+      "profileSaveFailed": "Account created, but failed to save profile.",
+      "checkEmail": "Check your email to confirm registration.",
+      "welcome": "Welcome"
+    }
+  },
+  "booking": {
+    "title": "Book a Space",
+    "subtitle": "Select a floor, date, and filters to find the perfect room.",
+    "floor": "Floor",
+    "selectFloor": "Select a floor",
+    "date": "Date",
+    "startTime": "Start Time",
+    "endTime": "End Time",
+    "filters": "Filters",
+    "roomType": "Room Type",
+    "allTypes": "All Types",
+    "minCapacity": "Min Capacity",
+    "legend": {
+      "available": "Available",
+      "occupied": "Occupied",
+      "filtered": "Filtered"
+    },
+    "mapControls": "Scroll to zoom • Drag to pan",
+    "messages": {
+      "roomOccupied": "This room is occupied during the selected time.",
+      "roomMaintenance": "Room under maintenance.",
+      "configLoadFailed": "Failed to load configuration"
+    }
+  },
+  "myBookings": {
+    "title": "Booking History",
+    "subtitle": "View and manage your upcoming and past reservations.",
+    "empty": {
+      "title": "No bookings found",
+      "subtitle": "You haven't made any reservations yet."
+    },
+    "addToCalendar": "Add to Calendar",
+    "cancelBooking": {
+      "title": "Cancel Booking?",
+      "description": "This will release the room {{room}} immediately.",
+      "keep": "Keep Booking",
+      "confirm": "Yes, Cancel it"
+    },
+    "messages": {
+      "loadFailed": "Could not load your bookings",
+      "cancelSuccess": "Booking cancelled successfully",
+      "cancelFailed": "Failed to cancel booking"
+    }
+  },
+  "profile": {
+    "title": "User Profile",
+    "fullName": "Full Name",
+    "phone": "Phone Number",
+    "department": "Department",
+    "email": "Email Address",
+    "emailNote": "Email cannot be changed.",
+    "saveChanges": "Save Changes",
+    "saving": "Saving...",
+    "departments": {
+      "faculty": "Faculty (Professors)",
+      "it": "IT Support",
+      "admin": "Administration",
+      "hr": "Human Resources",
+      "student": "Student Body"
+    },
+    "messages": {
+      "loadFailed": "Failed to load profile",
+      "updateSuccess": "Profile updated successfully",
+      "updateFailed": "Failed to update profile"
+    }
+  },
+  "admin": {
+    "bookings": {
+      "title": "Booking Registry",
+      "subtitle": "Master record of all system bookings.",
+      "loadingDashboard": "Loading Dashboard...",
+      "searchPlaceholder": "Search user or room...",
+      "tabs": {
+        "list": "Booking List",
+        "byRoom": "Bookings by Room"
+      },
+      "deleteDialog": {
+        "title": "Force Delete Booking?",
+        "description": "This will immediately remove the booking for"
+      },
+      "unknownFloor": "Unknown Floor",
+      "upcomingSchedule": "Upcoming Schedule",
+      "noUpcoming": "No upcoming bookings found.",
+      "noBookings": "No bookings found.",
+      "occupiedNow": "Occupied Now"
+    },
+    "messages": {
+      "loadFailed": "Failed to load dashboard data",
+      "deleteSuccess": "Booking deleted successfully",
+      "deleteFailed": "Failed to delete booking",
+      "noDataExport": "No data to export",
+      "exportStarted": "Export Started"
+    }
+  },
+  "stats": {
+    "totalBookings": "Total Bookings",
+    "totalBookingsDesc": "All-time reservations",
+    "happeningNow": "Happening Now",
+    "happeningNowDesc": "Meetings currently in progress",
+    "uniqueUsers": "Unique Users",
+    "uniqueUsersDesc": "Employees using the system"
+  },
+  "activity": {
+    "title": "System Activity",
+    "subtitle": "Real-time audit log of user actions.",
+    "empty": "No activity recorded yet.",
+    "unknownUser": "Unknown User"
+  },
+  "language": {
+    "switch": "Language",
+    "en": "English",
+    "ptBR": "Português (BR)"
+  }
+}

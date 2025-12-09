@@ -1,0 +1,180 @@
+{
+  "common": {
+    "loading": "Carregando...",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "create": "Criar",
+    "search": "Buscar",
+    "export": "Exportar",
+    "processing": "Processando...",
+    "status": {
+      "active": "Ativo",
+      "completed": "Concluído",
+      "upcoming": "Agendado",
+      "available": "Disponível",
+      "occupied": "Ocupado",
+      "filtered": "Filtrado"
+    },
+    "table": {
+      "user": "Usuário",
+      "room": "Sala",
+      "date": "Data",
+      "time": "Horário",
+      "status": "Status",
+      "actions": "Ações"
+    }
+  },
+  "nav": {
+    "bookRoom": "Reservar Sala",
+    "myBookings": "Minhas Reservas",
+    "editor": "Editor",
+    "dashboard": "Painel",
+    "config": "Configurações",
+    "profile": "Perfil",
+    "logout": "Sair"
+  },
+  "login": {
+    "title": "Bem-vindo de volta!",
+    "titleSignup": "Junte-se ao CajuHUB",
+    "subtitle": "Entre para gerenciar suas reservas",
+    "subtitleSignup": "Crie seu perfil de usuário",
+    "fullName": "Nome Completo",
+    "phone": "Telefone",
+    "department": "Departamento",
+    "email": "Email",
+    "password": "Senha",
+    "submit": "Entrar",
+    "submitSignup": "Criar conta",
+    "switchToSignup": "Precisa criar uma conta? Cadastre-se",
+    "switchToLogin": "Já tem uma conta? Entrar",
+    "departments": {
+      "faculty": "Corpo Docente (Professores)",
+      "it": "Suporte de TI",
+      "admin": "Administração",
+      "hr": "Recursos Humanos",
+      "student": "Estudante"
+    },
+    "messages": {
+      "fillAllFields": "Por favor preencha todos os campos.",
+      "accountCreated": "Conta criada com sucesso!",
+      "profileSaveFailed": "Conta criada, mas falha ao salvar o perfil.",
+      "checkEmail": "Cheque seu email para confirmar o cadastro.",
+      "welcome": "Bem-vindo"
+    }
+  },
+  "booking": {
+    "title": "Reservar Espaço",
+    "subtitle": "Selecione um andar, data e filtros para encontrar a sala perfeita.",
+    "floor": "Andar",
+    "selectFloor": "Selecione um andar",
+    "date": "Data",
+    "startTime": "Hora Início",
+    "endTime": "Hora Fim",
+    "filters": "Filtros",
+    "roomType": "Tipo de Sala",
+    "allTypes": "Todos os Tipos",
+    "minCapacity": "Capacidade Mínima",
+    "legend": {
+      "available": "Disponível",
+      "occupied": "Ocupado",
+      "filtered": "Filtrado"
+    },
+    "mapControls": "Scroll para zoom • Arraste para mover",
+    "messages": {
+      "roomOccupied": "Esta sala está ocupada durante o horário selecionado.",
+      "roomMaintenance": "Sala em manutenção.",
+      "configLoadFailed": "Falha ao carregar configuração"
+    }
+  },
+  "myBookings": {
+    "title": "Histórico de Reservas",
+    "subtitle": "Visualize e gerencie suas reservas futuras e passadas.",
+    "empty": {
+      "title": "Nenhuma reserva encontrada",
+      "subtitle": "Você ainda não fez nenhuma reserva."
+    },
+    "addToCalendar": "Adicionar ao Calendário",
+    "cancelBooking": {
+      "title": "Cancelar Reserva?",
+      "description": "Isso irá liberar a sala {{room}} imediatamente.",
+      "keep": "Manter Reserva",
+      "confirm": "Sim, Cancelar"
+    },
+    "messages": {
+      "loadFailed": "Não foi possível carregar suas reservas",
+      "cancelSuccess": "Reserva cancelada com sucesso",
+      "cancelFailed": "Falha ao cancelar reserva"
+    }
+  },
+  "profile": {
+    "title": "Perfil do Usuário",
+    "fullName": "Nome Completo",
+    "phone": "Telefone",
+    "department": "Departamento",
+    "email": "Endereço de Email",
+    "emailNote": "O email não pode ser alterado.",
+    "saveChanges": "Salvar Alterações",
+    "saving": "Salvando...",
+    "departments": {
+      "faculty": "Corpo Docente (Professores)",
+      "it": "Suporte de TI",
+      "admin": "Administração",
+      "hr": "Recursos Humanos",
+      "student": "Estudante"
+    },
+    "messages": {
+      "loadFailed": "Falha ao carregar perfil",
+      "updateSuccess": "Perfil atualizado com sucesso",
+      "updateFailed": "Falha ao atualizar perfil"
+    }
+  },
+  "admin": {
+    "bookings": {
+      "title": "Registro de Reservas",
+      "subtitle": "Registro principal de todas as reservas do sistema.",
+      "loadingDashboard": "Carregando Dashboard...",
+      "searchPlaceholder": "Buscar usuário ou sala...",
+      "tabs": {
+        "list": "Lista de Reservas",
+        "byRoom": "Reservas por Sala"
+      },
+      "deleteDialog": {
+        "title": "Forçar Exclusão da Reserva?",
+        "description": "Isso irá remover imediatamente a reserva de"
+      },
+      "unknownFloor": "Andar Desconhecido",
+      "upcomingSchedule": "Agenda Futura",
+      "noUpcoming": "Nenhuma reserva futura encontrada.",
+      "noBookings": "Nenhuma reserva encontrada.",
+      "occupiedNow": "Ocupado Agora"
+    },
+    "messages": {
+      "loadFailed": "Falha ao carregar dados do dashboard",
+      "deleteSuccess": "Reserva excluída com sucesso",
+      "deleteFailed": "Falha ao deletar a reserva",
+      "noDataExport": "Sem dados para exportar",
+      "exportStarted": "Exportação Inicializada"
+    }
+  },
+  "stats": {
+    "totalBookings": "Total de Reservas",
+    "totalBookingsDesc": "Reservas de todos os tempos",
+    "happeningNow": "Acontecendo Agora",
+    "happeningNowDesc": "Reuniões em andamento",
+    "uniqueUsers": "Usuários Únicos",
+    "uniqueUsersDesc": "Funcionários usando o sistema"
+  },
+  "activity": {
+    "title": "Atividade do Sistema",
+    "subtitle": "Log de auditoria em tempo real das ações dos usuários.",
+    "empty": "Nenhuma atividade registrada ainda.",
+    "unknownUser": "Usuário Desconhecido"
+  },
+  "language": {
+    "switch": "Idioma",
+    "en": "English",
+    "ptBR": "Português (BR)"
+  }
+}

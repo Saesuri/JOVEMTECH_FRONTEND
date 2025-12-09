@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,7 +21,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { floorService } from "../../services/api"; // Import service directly for stats
+import { floorService } from "../../services/api";
 
 interface FloorManagerModalProps {
   isOpen: boolean;
@@ -49,6 +49,14 @@ const FloorManagerModal: React.FC<FloorManagerModalProps> = ({
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [statsLoading, setStatsLoading] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
+
+  // Fix: Sync state with props when modal opens or floor changes
+  useEffect(() => {
+    if (isOpen) {
+      setRenameValue(currentFloorName);
+      setNewFloorName("");
+    }
+  }, [isOpen, currentFloorName]);
 
   const handleCreate = async () => {
     if (!newFloorName) return toast.error("Enter a name");
@@ -85,6 +93,7 @@ const FloorManagerModal: React.FC<FloorManagerModalProps> = ({
 
       setIsAlertOpen(true);
     } catch (error) {
+      console.error(error); 
       toast.error("Failed to check floor stats");
     } finally {
       setStatsLoading(false);

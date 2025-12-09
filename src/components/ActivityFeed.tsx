@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { loggingService } from "../services/api";
-import type { AuditLog } from "../types/apiTypes"; // <--- FIXED IMPORT
+import type { AuditLog } from "../types/apiTypes";
 import { formatRelativeTime } from "../utils/formatters";
 
 import {
@@ -22,6 +23,7 @@ import {
 } from "lucide-react";
 
 export function ActivityFeed() {
+  const { t } = useTranslation();
   const [logs, setLogs] = useState<AuditLog[]>([]);
 
   useEffect(() => {
@@ -29,8 +31,8 @@ export function ActivityFeed() {
       try {
         const data = await loggingService.getLogs();
         setLogs(data);
-      } catch (error) {
-        console.error("Failed to load logs");
+      } catch (e) {
+        console.error(e);
       }
     };
     fetchLogs();
@@ -58,9 +60,9 @@ export function ActivityFeed() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
           <Activity className="h-5 w-5 text-primary" />
-          System Activity
+          {t("activity.title")}
         </CardTitle>
-        <CardDescription>Real-time audit log of user actions.</CardDescription>
+        <CardDescription>{t("activity.subtitle")}</CardDescription>
       </CardHeader>
       <CardContent className="p-0">
         <ScrollArea className="h-[500px] px-6 pb-4">
@@ -68,7 +70,7 @@ export function ActivityFeed() {
             {logs.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                 <Activity className="h-10 w-10 opacity-20 mb-2" />
-                <p>No activity recorded yet.</p>
+                <p>{t("activity.empty")}</p>
               </div>
             )}
 
@@ -83,7 +85,8 @@ export function ActivityFeed() {
                 <div className="grid gap-1 w-full">
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-medium leading-none">
-                      {log.profiles?.email?.split("@")[0] || "Unknown User"}
+                      {log.profiles?.email?.split("@")[0] ||
+                        t("activity.unknownUser")}
                     </p>
                     <span className="text-[10px] text-muted-foreground tabular-nums">
                       {formatRelativeTime(log.created_at)}

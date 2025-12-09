@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { bookingService, spaceService } from "../services/api";
-import type { BookingAdminResponse, SpaceWithFloor } from "../types/apiTypes"; // <--- FIXED IMPORT
+import type { BookingAdminResponse, SpaceWithFloor } from "../types/apiTypes";
 import { toast } from "sonner";
 import { downloadCSV } from "../utils/exportUtils";
 import {
@@ -55,6 +56,7 @@ import {
 } from "lucide-react";
 
 const AdminBookings = () => {
+  const { t } = useTranslation();
   const [bookings, setBookings] = useState<BookingAdminResponse[]>([]);
   const [spaces, setSpaces] = useState<SpaceWithFloor[]>([]);
   const [filteredBookings, setFilteredBookings] = useState<
@@ -90,7 +92,8 @@ const AdminBookings = () => {
       setFilteredBookings(allBookings);
       setSpaces(allSpaces);
     } catch (e) {
-      toast.error("Failed to load dashboard data");
+      console.error(e);
+      toast.error(t("admin.messages.loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -100,22 +103,24 @@ const AdminBookings = () => {
     setDeletingId(id);
     try {
       await bookingService.cancel(id);
-      toast.success("Booking deleted permanently");
+      toast.success(t("admin.messages.deleteSuccess"));
       setBookings((prev) => prev.filter((b) => b.id !== id));
     } catch (e) {
-      toast.error("Failed to delete booking");
+      console.error(e);
+      toast.error(t("admin.messages.deleteFailed"));
     } finally {
       setDeletingId(null);
     }
   };
 
   const handleExport = () => {
-    if (filteredBookings.length === 0) return toast.error("No data to export");
+    if (filteredBookings.length === 0)
+      return toast.error(t("admin.messages.noDataExport"));
     downloadCSV(
       filteredBookings,
       `cajuhub_bookings_${new Date().toISOString().split("T")[0]}`
     );
-    toast.success("Export started");
+    toast.success(t("admin.messages.exportStarted"));
   };
 
   const isRoomOccupiedNow = (spaceName: string) => {
@@ -133,7 +138,7 @@ const AdminBookings = () => {
       <div className="flex h-[80vh] items-center justify-center">
         <div className="flex flex-col items-center gap-2 text-muted-foreground animate-pulse">
           <Loader2 className="h-8 w-8 animate-spin" />
-          <p>Loading Dashboard...</p>
+          <p>{t("admin.bookings.loadingDashboard")}</p>
         </div>
       </div>
     );
@@ -149,8 +154,12 @@ const AdminBookings = () => {
           <Tabs defaultValue="list" className="w-full">
             <div className="flex items-center justify-between mb-4">
               <TabsList>
-                <TabsTrigger value="list">All Bookings List</TabsTrigger>
-                <TabsTrigger value="agenda">Room Agenda View</TabsTrigger>
+                <TabsTrigger value="list">
+                  {t("admin.bookings.tabs.list")}
+                </TabsTrigger>
+                <TabsTrigger value="agenda">
+                  {t("admin.bookings.tabs.byRoom")}
+                </TabsTrigger>
               </TabsList>
             </div>
 
@@ -160,10 +169,10 @@ const AdminBookings = () => {
                   <div>
                     <CardTitle className="text-xl flex items-center gap-2">
                       <ShieldAlert className="h-5 w-5 text-primary" />
-                      Booking Log
+                      {t("admin.bookings.title")}
                     </CardTitle>
                     <CardDescription>
-                      Master record of all system reservations.
+                      {t("admin.bookings.subtitle")}
                     </CardDescription>
                   </div>
 
@@ -171,7 +180,7 @@ const AdminBookings = () => {
                     <div className="relative flex-1 md:w-64">
                       <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                       <Input
-                        placeholder="Search user or room..."
+                        placeholder={t("admin.bookings.searchPlaceholder")}
                         className="pl-8"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
@@ -183,7 +192,7 @@ const AdminBookings = () => {
                       className="gap-2"
                     >
                       <Download className="h-4 w-4" />
-                      Export
+                      {t("common.export")}
                     </Button>
                   </div>
                 </CardHeader>
@@ -193,12 +202,14 @@ const AdminBookings = () => {
                     <Table>
                       <TableHeader className="bg-muted/50">
                         <TableRow>
-                          <TableHead>User</TableHead>
-                          <TableHead>Room</TableHead>
-                          <TableHead>Date</TableHead>
-                          <TableHead>Time</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead className="text-right">Action</TableHead>
+                          <TableHead>{t("common.table.user")}</TableHead>
+                          <TableHead>{t("common.table.room")}</TableHead>
+                          <TableHead>{t("common.table.date")}</TableHead>
+                          <TableHead>{t("common.table.time")}</TableHead>
+                          <TableHead>{t("common.table.status")}</TableHead>
+                          <TableHead className="text-right">
+                            {t("common.table.actions")}
+                          </TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -208,7 +219,7 @@ const AdminBookings = () => {
                               colSpan={6}
                               className="h-24 text-center text-muted-foreground"
                             >
-                              No bookings found.
+                              {t("admin.bookings.noBookings")}
                             </TableCell>
                           </TableRow>
                         ) : (
@@ -242,11 +253,11 @@ const AdminBookings = () => {
                                       variant="outline"
                                       className="text-muted-foreground"
                                     >
-                                      Completed
+                                      {t("common.status.completed")}
                                     </Badge>
                                   ) : (
                                     <Badge className="bg-green-600 border-0">
-                                      Active
+                                      {t("common.status.active")}
                                     </Badge>
                                   )}
                                 </TableCell>
@@ -269,23 +280,26 @@ const AdminBookings = () => {
                                     <AlertDialogContent>
                                       <AlertDialogHeader>
                                         <AlertDialogTitle>
-                                          Force Delete Booking?
+                                          {t(
+                                            "admin.bookings.deleteDialog.title"
+                                          )}
                                         </AlertDialogTitle>
                                         <AlertDialogDescription>
-                                          This will immediately remove the
-                                          booking for{" "}
+                                          {t(
+                                            "admin.bookings.deleteDialog.description"
+                                          )}{" "}
                                           <strong>{b.profiles?.email}</strong>.
                                         </AlertDialogDescription>
                                       </AlertDialogHeader>
                                       <AlertDialogFooter>
                                         <AlertDialogCancel>
-                                          Cancel
+                                          {t("common.cancel")}
                                         </AlertDialogCancel>
                                         <AlertDialogAction
                                           onClick={() => handleDelete(b.id)}
                                           className="bg-red-600 hover:bg-red-700"
                                         >
-                                          Delete
+                                          {t("common.delete")}
                                         </AlertDialogAction>
                                       </AlertDialogFooter>
                                     </AlertDialogContent>
@@ -331,7 +345,8 @@ const AdminBookings = () => {
                             </CardTitle>
                             <CardDescription className="flex items-center gap-1 mt-1">
                               <MapPin className="h-3 w-3" />
-                              {space.floors?.name || "Unknown Floor"}
+                              {space.floors?.name ||
+                                t("admin.bookings.unknownFloor")}
                             </CardDescription>
                           </div>
                           {isOccupied ? (
@@ -339,14 +354,14 @@ const AdminBookings = () => {
                               variant="destructive"
                               className="animate-pulse"
                             >
-                              Occupied Now
+                              {t("admin.bookings.occupiedNow")}
                             </Badge>
                           ) : (
                             <Badge
                               variant="outline"
                               className="text-green-600 border-green-200 bg-green-50"
                             >
-                              Available
+                              {t("common.status.available")}
                             </Badge>
                           )}
                         </div>
@@ -354,13 +369,13 @@ const AdminBookings = () => {
                       <CardContent>
                         <h4 className="text-sm font-semibold mb-3 flex items-center gap-2 text-muted-foreground">
                           <CalendarDays className="h-4 w-4" />
-                          Upcoming Schedule
+                          {t("admin.bookings.upcomingSchedule")}
                         </h4>
 
                         <ScrollArea className="h-[150px] w-full rounded border p-2 bg-muted/20">
                           {roomBookings.length === 0 ? (
                             <div className="text-xs text-muted-foreground text-center py-8">
-                              No upcoming bookings found.
+                              {t("admin.bookings.noUpcoming")}
                             </div>
                           ) : (
                             <div className="space-y-2">

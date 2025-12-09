@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 // Services & Utils
@@ -15,9 +16,6 @@ import type { Floor, RoomShape, RoomType } from "../types/apiTypes";
 // Components
 import GridCanvas from "../components/MapEditor/GridCanvas";
 import BookingModal from "../components/Modals/BookingModal";
-
-// Libraries
-import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 // Shadcn UI & Icons
 import {
@@ -37,18 +35,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import {
-  ZoomIn,
-  ZoomOut,
-  RotateCcw,
-  Filter,
-  Users,
-  CalendarClock,
-  Map,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Filter, Users, CalendarClock, Map } from "lucide-react";
 
 function UserBooking() {
+  const { t } = useTranslation();
   // --- Data State ---
   const [rooms, setRooms] = useState<RoomShape[]>([]);
   const [floors, setFloors] = useState<Floor[]>([]);
@@ -71,6 +61,39 @@ function UserBooking() {
   const [selectedRoom, setSelectedRoom] = useState<RoomShape | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Calculate canvas size from actual room positions (ensures all rooms fit)
+  const canvasBounds = useMemo(() => {
+    if (rooms.length === 0) return { width: 800, height: 600 };
+
+    let maxX = 0;
+    let maxY = 0;
+
+    rooms.forEach((room) => {
+      if (room.shapeType === "rect") {
+        const rightEdge = room.data.x + room.data.width;
+        const bottomEdge = room.data.y + room.data.height;
+        if (rightEdge > maxX) maxX = rightEdge;
+        if (bottomEdge > maxY) maxY = bottomEdge;
+      } else {
+        // Polygon: find max x and y from points array
+        const points = room.data.points;
+        for (let i = 0; i < points.length; i += 2) {
+          if (points[i] > maxX) maxX = points[i];
+          if (points[i + 1] > maxY) maxY = points[i + 1];
+        }
+      }
+    });
+
+    // Add padding and ensure minimum size
+    return {
+      width: Math.max(maxX + 100, 800),
+      height: Math.max(maxY + 100, 600),
+    };
+  }, [rooms]);
+
+  const canvasWidth = canvasBounds.width;
+  const canvasHeight = canvasBounds.height;
+
   // 1. Load Initial Data
   useEffect(() => {
     const initData = async () => {
@@ -88,7 +111,7 @@ function UserBooking() {
         }
       } catch (error) {
         console.error("Error loading initial data:", error);
-        toast.error("Failed to load configuration");
+        toast.error(t("booking.messages.configLoadFailed"));
       }
     };
     initData();
@@ -148,12 +171,12 @@ function UserBooking() {
     if (dimmedIds.includes(room.id)) return;
 
     if (occupiedIds.includes(room.id)) {
-      toast.warning("This room is occupied during the selected time.");
+      toast.warning(t("booking.messages.roomOccupied"));
       return;
     }
 
     if ((room as any).is_active === false) {
-      toast.info("Room under maintenance.");
+      toast.info(t("booking.messages.roomMaintenance"));
       return;
     }
 
@@ -167,7 +190,7 @@ function UserBooking() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6 max-w-7xl">
+    <div className="container mx-auto p-4 md:p-6 space-y-4 md:space-y-6 max-w-7xl">
       {/* CONTROL PANEL */}
       <Card className="shadow-sm">
         <CardHeader className="pb-4">
@@ -175,25 +198,29 @@ function UserBooking() {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <CalendarClock className="h-6 w-6 text-primary" />
-                Book a Space
+                {t("booking.title")}
               </CardTitle>
-              <CardDescription>
-                Select a floor, date, and filters to find the perfect room.
-              </CardDescription>
+              <CardDescription>{t("booking.subtitle")}</CardDescription>
             </div>
 
-            <div className="flex items-center gap-4 text-sm bg-muted/30 p-2 rounded-lg border">
+            <div className="hidden sm:flex items-center gap-4 text-sm bg-muted/30 p-2 rounded-lg border flex-wrap">
               <div className="flex items-center gap-2">
                 <div className="h-3 w-3 rounded-full bg-green-200 border border-green-600"></div>
-                <span className="text-muted-foreground">Available</span>
+                <span className="text-muted-foreground">
+                  {t("booking.legend.available")}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="h-3 w-3 rounded-full bg-red-200 border border-red-600"></div>
-                <span className="text-muted-foreground">Occupied</span>
+                <span className="text-muted-foreground">
+                  {t("booking.legend.occupied")}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="h-3 w-3 rounded-full bg-slate-100 border border-slate-300 opacity-50"></div>
-                <span className="text-muted-foreground">Filtered</span>
+                <span className="text-muted-foreground">
+                  {t("booking.legend.filtered")}
+                </span>
               </div>
             </div>
           </div>
@@ -206,14 +233,14 @@ function UserBooking() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
-                  <Map className="h-3 w-3" /> Floor
+                  <Map className="h-3 w-3" /> {t("booking.floor")}
                 </Label>
                 <Select
                   onValueChange={setSelectedFloorId}
                   value={selectedFloorId}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a floor" />
+                    <SelectValue placeholder={t("booking.selectFloor")} />
                   </SelectTrigger>
                   <SelectContent>
                     {floors.map((f) => (
@@ -225,7 +252,7 @@ function UserBooking() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Date</Label>
+                <Label>{t("booking.date")}</Label>
                 <Input
                   type="date"
                   value={date}
@@ -236,7 +263,7 @@ function UserBooking() {
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Start Time</Label>
+                <Label>{t("booking.startTime")}</Label>
                 <Input
                   type="time"
                   value={startTime}
@@ -244,7 +271,7 @@ function UserBooking() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>End Time</Label>
+                <Label>{t("booking.endTime")}</Label>
                 <Input
                   type="time"
                   value={endTime}
@@ -255,17 +282,19 @@ function UserBooking() {
 
             <div className="space-y-4 lg:col-span-2 border-l pl-0 lg:pl-6">
               <div className="flex items-center gap-2 mb-2 text-sm font-semibold text-muted-foreground">
-                <Filter className="h-4 w-4" /> Filters
+                <Filter className="h-4 w-4" /> {t("booking.filters")}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Room Type</Label>
+                  <Label>{t("booking.roomType")}</Label>
                   <Select value={filterType} onValueChange={setFilterType}>
                     <SelectTrigger>
-                      <SelectValue placeholder="All Types" />
+                      <SelectValue placeholder={t("booking.allTypes")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Types</SelectItem>
+                      <SelectItem value="all">
+                        {t("booking.allTypes")}
+                      </SelectItem>
                       {roomTypes.map((t) => (
                         <SelectItem key={t.id} value={t.value}>
                           {t.label}
@@ -276,7 +305,7 @@ function UserBooking() {
                 </div>
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
-                    <Users className="h-3 w-3" /> Min Capacity
+                    <Users className="h-3 w-3" /> {t("booking.minCapacity")}
                   </Label>
                   <Input
                     type="number"
@@ -292,67 +321,20 @@ function UserBooking() {
         </CardContent>
       </Card>
 
-      {/* MAP AREA */}
-      <div className="flex justify-center border rounded-xl bg-slate-50 dark:bg-slate-900/50 p-1 shadow-inner overflow-hidden relative h-[600px] group">
-        <TransformWrapper
-          initialScale={1}
-          minScale={0.5}
-          maxScale={4}
-          centerOnInit
-          wheel={{ step: 0.1 }}
-        >
-          {({ zoomIn, zoomOut, resetTransform }) => (
-            <>
-              <div className="absolute top-4 right-4 z-10 flex flex-col gap-1 bg-background/95 backdrop-blur shadow-md border rounded-md p-1 transition-opacity opacity-0 group-hover:opacity-100">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => zoomIn()}
-                >
-                  <ZoomIn className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => zoomOut()}
-                >
-                  <ZoomOut className="h-4 w-4" />
-                </Button>
-                <Separator />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => resetTransform()}
-                >
-                  <RotateCcw className="h-4 w-4" />
-                </Button>
-              </div>
-
-              <TransformComponent
-                wrapperClass="!w-full !h-full"
-                contentClass="!w-full !h-full flex items-center justify-center"
-              >
-                <GridCanvas
-                  width={800}
-                  height={600}
-                  rectangles={rooms}
-                  setRectangles={() => {}}
-                  tool="select"
-                  readOnly={true}
-                  onRoomClick={handleRoomClick}
-                  occupiedIds={occupiedIds}
-                  dimmedIds={dimmedIds} // <--- CORRECTED: Single prop
-                />
-              </TransformComponent>
-            </>
-          )}
-        </TransformWrapper>
-
-        <div className="absolute bottom-4 left-4 text-xs text-muted-foreground bg-background/80 px-3 py-1 rounded-full border backdrop-blur">
-          Scroll to zoom • Drag to pan
+      {/* MAP AREA - Static, no zoom/pan */}
+      <div className="border rounded-xl bg-slate-50 dark:bg-slate-900/50 p-2 shadow-inner overflow-auto">
+        <div className="flex justify-center min-w-fit">
+          <GridCanvas
+            width={canvasWidth}
+            height={canvasHeight}
+            rectangles={rooms}
+            setRectangles={() => {}}
+            tool="select"
+            readOnly={true}
+            onRoomClick={handleRoomClick}
+            occupiedIds={occupiedIds}
+            dimmedIds={dimmedIds}
+          />
         </div>
       </div>
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { userService } from "../services/api";
-// IMPORT TYPE FROM TYPES FILE
 import type { UserProfile } from "../types/apiTypes";
 import { toast } from "sonner";
 
@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/select";
 
 const Profile = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -50,7 +51,8 @@ const Profile = () => {
       setPhone(data.phone || "");
       setDepartment(data.department || "Faculty");
     } catch (e) {
-      toast.error("Failed to load profile");
+      console.error(e);
+      toast.error(t("profile.messages.loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -64,9 +66,10 @@ const Profile = () => {
         phone,
         department,
       });
-      toast.success("Profile updated successfully");
+      toast.success(t("profile.messages.updateSuccess"));
     } catch (e) {
-      toast.error("Failed to update profile");
+      console.error(e);
+      toast.error(t("profile.messages.updateFailed"));
     } finally {
       setSaving(false);
     }
@@ -84,7 +87,9 @@ const Profile = () => {
 
   if (loading)
     return (
-      <div className="p-10 text-center animate-pulse">Loading Profile...</div>
+      <div className="p-10 text-center animate-pulse">
+        {t("common.loading")}
+      </div>
     );
 
   return (
@@ -99,7 +104,7 @@ const Profile = () => {
           </Avatar>
           <div>
             <CardTitle className="text-2xl">
-              {profile?.full_name || "User Profile"}
+              {profile?.full_name || t("profile.title")}
             </CardTitle>
             <CardDescription>{profile?.email}</CardDescription>
             <div className="flex gap-2 mt-2">
@@ -116,7 +121,7 @@ const Profile = () => {
         <CardContent className="space-y-6 mt-4">
           <div className="grid gap-2">
             <Label className="flex items-center gap-2">
-              <User className="h-4 w-4" /> Full Name
+              <User className="h-4 w-4" /> {t("profile.fullName")}
             </Label>
             <Input
               value={fullName}
@@ -127,7 +132,7 @@ const Profile = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="grid gap-2">
               <Label className="flex items-center gap-2">
-                <Phone className="h-4 w-4" /> Phone Number
+                <Phone className="h-4 w-4" /> {t("profile.phone")}
               </Label>
               <Input
                 value={phone}
@@ -138,18 +143,28 @@ const Profile = () => {
 
             <div className="grid gap-2">
               <Label className="flex items-center gap-2">
-                <Building2 className="h-4 w-4" /> Department
+                <Building2 className="h-4 w-4" /> {t("profile.department")}
               </Label>
               <Select value={department} onValueChange={setDepartment}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Faculty">Faculty (Professors)</SelectItem>
-                  <SelectItem value="IT">IT Support</SelectItem>
-                  <SelectItem value="Admin">Administration</SelectItem>
-                  <SelectItem value="HR">Human Resources</SelectItem>
-                  <SelectItem value="Student">Student Body</SelectItem>
+                  <SelectItem value="Faculty">
+                    {t("profile.departments.faculty")}
+                  </SelectItem>
+                  <SelectItem value="IT">
+                    {t("profile.departments.it")}
+                  </SelectItem>
+                  <SelectItem value="Admin">
+                    {t("profile.departments.admin")}
+                  </SelectItem>
+                  <SelectItem value="HR">
+                    {t("profile.departments.hr")}
+                  </SelectItem>
+                  <SelectItem value="Student">
+                    {t("profile.departments.student")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -157,18 +172,18 @@ const Profile = () => {
 
           <div className="grid gap-2 opacity-50">
             <Label className="flex items-center gap-2">
-              <Mail className="h-4 w-4" /> Email Address
+              <Mail className="h-4 w-4" /> {t("profile.email")}
             </Label>
             <Input value={profile?.email} disabled readOnly />
             <p className="text-xs text-muted-foreground">
-              Email cannot be changed.
+              {t("profile.emailNote")}
             </p>
           </div>
         </CardContent>
         <CardFooter className="flex justify-end border-t pt-6 bg-muted/20">
           <Button onClick={handleSave} disabled={saving} className="gap-2">
             <Save className="h-4 w-4" />
-            {saving ? "Saving..." : "Save Changes"}
+            {saving ? t("profile.saving") : t("profile.saveChanges")}
           </Button>
         </CardFooter>
       </Card>

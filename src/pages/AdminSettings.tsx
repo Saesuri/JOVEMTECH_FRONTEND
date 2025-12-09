@@ -7,17 +7,19 @@ const AdminSettings = () => {
   return (
     <div className="container mx-auto py-10 max-w-5xl space-y-8">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">System Settings</h2>
+        <h2 className="text-3xl font-bold tracking-tight">
+          Configurações do Sistema
+        </h2>
         <p className="text-muted-foreground">
-          Manage facilities, categories, and user access.
+          Gerenciar instalações, categorias e acesso de usuários.
         </p>
       </div>
 
       <Tabs defaultValue="rooms" className="space-y-4">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="rooms">Room Management</TabsTrigger>
-          <TabsTrigger value="categories">Categories (CMS)</TabsTrigger>
-          <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="rooms">Gerenciamento de Espaços</TabsTrigger>
+          <TabsTrigger value="categories">Categorias (CMS)</TabsTrigger>
+          <TabsTrigger value="users">Usuários</TabsTrigger>
         </TabsList>
 
         <TabsContent value="rooms">

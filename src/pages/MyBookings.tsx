@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { bookingService } from "../services/api";
-import type { BookingWithSpace } from "../types/apiTypes"; // <--- FIXED IMPORT
+import type { BookingWithSpace } from "../types/apiTypes";
 import { toast } from "sonner";
 import {
   generateGoogleCalendarUrl,
@@ -54,6 +55,7 @@ import {
 } from "lucide-react";
 
 const MyBookings = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [bookings, setBookings] = useState<BookingWithSpace[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,23 +70,23 @@ const MyBookings = () => {
         setBookings(data);
       } catch (error) {
         console.error("Error fetching bookings:", error);
-        toast.error("Could not load your bookings");
+        toast.error(t("myBookings.messages.loadFailed"));
       } finally {
         setLoading(false);
       }
     };
 
     fetchBookings();
-  }, [user]);
+  }, [user, t]);
 
   const handleCancel = async (id: string) => {
     setDeletingId(id);
     try {
       await bookingService.cancel(id);
       setBookings((prev) => prev.filter((b) => b.id !== id));
-      toast.success("Booking cancelled successfully");
+      toast.success(t("myBookings.messages.cancelSuccess"));
     } catch (error) {
-      toast.error("Failed to cancel booking");
+      toast.error(t("myBookings.messages.cancelFailed"));
       console.error(error);
     } finally {
       setDeletingId(null);
@@ -137,11 +139,9 @@ const MyBookings = () => {
         <CardHeader>
           <CardTitle className="text-2xl flex items-center gap-2">
             <Clock className="h-6 w-6 text-primary" />
-            Booking History
+            {t("myBookings.title")}
           </CardTitle>
-          <CardDescription>
-            View and manage your upcoming and past reservations.
-          </CardDescription>
+          <CardDescription>{t("myBookings.subtitle")}</CardDescription>
         </CardHeader>
         <CardContent>
           {bookings.length === 0 ? (
@@ -150,20 +150,22 @@ const MyBookings = () => {
                 <CalendarX className="h-10 w-10 opacity-50" />
               </div>
               <h3 className="text-lg font-semibold text-foreground">
-                No bookings found
+                {t("myBookings.empty.title")}
               </h3>
-              <p>You haven't made any reservations yet.</p>
+              <p>{t("myBookings.empty.subtitle")}</p>
             </div>
           ) : (
             <div className="rounded-md border overflow-hidden">
               <Table>
                 <TableHeader className="bg-muted/50">
                   <TableRow>
-                    <TableHead>Room</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Time</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t("common.table.room")}</TableHead>
+                    <TableHead>{t("common.table.date")}</TableHead>
+                    <TableHead>{t("common.table.time")}</TableHead>
+                    <TableHead>{t("common.table.status")}</TableHead>
+                    <TableHead className="text-right">
+                      {t("common.table.actions")}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -207,11 +209,11 @@ const MyBookings = () => {
                               variant="outline"
                               className="text-muted-foreground"
                             >
-                              Completed
+                              {t("common.status.completed")}
                             </Badge>
                           ) : (
                             <Badge className="bg-green-600 hover:bg-green-700 border-transparent text-white shadow hover:shadow-md transition-all">
-                              Upcoming
+                              {t("common.status.upcoming")}
                             </Badge>
                           )}
                         </TableCell>
@@ -226,7 +228,7 @@ const MyBookings = () => {
                                     className="gap-2"
                                   >
                                     <CalendarPlus className="h-4 w-4" />
-                                    Add to Calendar
+                                    {t("myBookings.addToCalendar")}
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
@@ -275,23 +277,24 @@ const MyBookings = () => {
                                 <AlertDialogContent>
                                   <AlertDialogHeader>
                                     <AlertDialogTitle className="text-red-600">
-                                      Cancel Booking?
+                                      {t("myBookings.cancelBooking.title")}
                                     </AlertDialogTitle>
                                     <AlertDialogDescription>
-                                      This will release the room{" "}
-                                      <strong>{booking.spaces?.name}</strong>{" "}
-                                      immediately.
+                                      {t(
+                                        "myBookings.cancelBooking.description",
+                                        { room: booking.spaces?.name }
+                                      )}
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
                                     <AlertDialogCancel>
-                                      Keep Booking
+                                      {t("myBookings.cancelBooking.keep")}
                                     </AlertDialogCancel>
                                     <AlertDialogAction
                                       className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
                                       onClick={() => handleCancel(booking.id)}
                                     >
-                                      Yes, Cancel it
+                                      {t("myBookings.cancelBooking.confirm")}
                                     </AlertDialogAction>
                                   </AlertDialogFooter>
                                 </AlertDialogContent>

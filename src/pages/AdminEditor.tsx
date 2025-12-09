@@ -80,7 +80,7 @@ function AdminEditor() {
         }
       } catch (error) {
         console.error("Error loading floors:", error);
-        toast.error("Failed to load floors");
+        toast.error("Falha ao carregar o pavimento");
       } finally {
         setLoading(false);
       }
@@ -104,7 +104,7 @@ function AdminEditor() {
 
   // --- HANDLERS ---
   const handleCreateFirstFloor = async () => {
-    if (!firstFloorName.trim()) return toast.error("Please enter a floor name");
+    if (!firstFloorName.trim()) return toast.error("Por favor, insira um nome");
     await handleCreateFloor(firstFloorName);
     setFirstFloorName("");
   };
@@ -118,9 +118,10 @@ function AdminEditor() {
       });
       setFloors((prev) => [...prev, newFloor]);
       setSelectedFloorId(newFloor.id);
-      toast.success("Floor created");
+      toast.success("Pavimento criado com sucesso!");
     } catch (e) {
-      toast.error("Failed to create floor");
+      console.error(e);
+      toast.error("Falha ao criar o pavimento");
     }
   };
 
@@ -128,9 +129,10 @@ function AdminEditor() {
     try {
       await floorService.update(id, name);
       setFloors(floors.map((f) => (f.id === id ? { ...f, name } : f)));
-      toast.success("Floor renamed");
+      toast.success("Pavimento renomeado com sucesso!");
     } catch (e) {
-      toast.error("Failed to rename");
+      console.error(e);
+      toast.error("Falha ao renomear o pavimento");
     }
   };
 
@@ -141,9 +143,10 @@ function AdminEditor() {
       setFloors(remaining);
       if (remaining.length > 0) setSelectedFloorId(remaining[0].id);
       else setSelectedFloorId("");
-      toast.success("Floor deleted");
+      toast.success("Pavimento excluído com sucesso!");
     } catch (e) {
-      toast.error("Failed to delete floor");
+      console.error(e);
+      toast.error("Falha ao excluir o pavimento");
     }
   };
 
@@ -154,15 +157,27 @@ function AdminEditor() {
     }
   };
 
-    const handleUpdateRoom = async (id: string, updates: { name: string; capacity: number; type: string; amenities: string[] }) => {
+  const handleUpdateRoom = async (
+    id: string,
+    updates: {
+      name: string;
+      capacity: number;
+      type: string;
+      amenities: string[];
+    }
+  ) => {
     try {
-      // Just pass 'updates' directly, spaceService.update handles Partial<Space>
-      await spaceService.update(id, updates); 
-      setRooms(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r));
-      toast.success("Room updated");
-    } catch (error) {
-      setRooms(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r));
-      toast("Room updated locally", { icon: '⚠️' });
+      await spaceService.update(id, updates);
+      setRooms((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, ...updates } : r))
+      );
+      toast.success("Espaço atualizado com sucesso!");
+    } catch (e) {
+      console.error(e);
+      setRooms((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, ...updates } : r))
+      );
+      toast("Espaço atualizado localmente", { icon: "⚠️" });
     }
   };
 
@@ -170,28 +185,30 @@ function AdminEditor() {
     try {
       await spaceService.delete(id);
       setRooms((prev) => prev.filter((r) => r.id !== id));
-      toast.success("Room deleted");
-    } catch (error) {
+      toast.success("Espaço excluído com sucesso!");
+    } catch (e) {
+      console.error(e);
       setRooms((prev) => prev.filter((r) => r.id !== id));
-      toast.info("Room removed");
+      toast.info("Espaço excluído localmente", { icon: "⚠️" });
     }
   };
 
   const handleSave = async () => {
     if (!selectedFloorId) {
-      toast.error("No Floor Selected!");
+      toast.error("Nenhum pavimento selecionado");
       return;
     }
 
     const promise = (async () => {
       const promises = rooms.map((room) => {
-        // Prepare Payload
+        // Prepare Payload - include all room properties
         const payload: CreateSpaceDTO = {
-          id: room.id, // <--- CRITICAL FIX: Send the existing ID!
+          id: room.id,
           floor_id: selectedFloorId,
           name: room.name,
-          type: "meeting_room", // You might want to store this in room.data if you want it to persist too
-          capacity: 10,
+          type: room.type || "meeting_room",
+          capacity: room.capacity || 10,
+          amenities: room.amenities || [],
           coordinates: room.data,
         };
         return spaceService.create(payload);
@@ -205,9 +222,9 @@ function AdminEditor() {
     })();
 
     toast.promise(promise, {
-      loading: "Saving layout...",
-      success: "Layout saved successfully!",
-      error: "Failed to save layout",
+      loading: "Salvando layout...",
+      success: "Layout salvo com sucesso!",
+      error: "Falha ao salvar o layout",
     });
   };
 
@@ -237,15 +254,17 @@ function AdminEditor() {
               <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit mb-4">
                 <LayoutTemplate className="h-10 w-10 text-primary" />
               </div>
-              <CardTitle className="text-2xl">Welcome to Map Editor</CardTitle>
+              <CardTitle className="text-2xl">
+                Bem-vindo ao Editor de Mapa
+              </CardTitle>
               <CardDescription>
-                Your workspace is empty. Create your first floor plan to unlock
-                the tools.
+                Seu espaço de trabalho está vazio. Crie a planta do primeiro
+                pavimento para desbloquear as ferramentas.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>First Floor Name</Label>
+                <Label>Nome do Primeiro Pavimento</Label>
                 <Input
                   placeholder="e.g. Ground Floor"
                   value={firstFloorName}
@@ -264,7 +283,7 @@ function AdminEditor() {
                 size="lg"
               >
                 <Plus className="h-4 w-4" />
-                Create First Floor
+                Criar Primeiro Pavimento
               </Button>
             </CardFooter>
           </Card>
@@ -290,18 +309,20 @@ function AdminEditor() {
               <div className="flex items-center gap-2">
                 <Layers className="h-6 w-6 text-primary" />
                 <div>
-                  <CardTitle>Floor Plan Editor</CardTitle>
-                  <CardDescription>Design your space layout.</CardDescription>
+                  <CardTitle>Editor de Pavimentos</CardTitle>
+                  <CardDescription>
+                    Planeje o layout do seu espaço.
+                  </CardDescription>
                 </div>
               </div>
 
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="text-muted-foreground">
-                  {rooms.length} Rooms
+                  {rooms.length} Salas
                 </Badge>
                 <Button onClick={handleSave} className="gap-2">
                   <Save className="h-4 w-4" />
-                  Save Layout
+                  Salvar Layout
                 </Button>
               </div>
             </div>
@@ -314,7 +335,7 @@ function AdminEditor() {
               {/* Left: Floor Selector + Settings */}
               <div className="w-full md:w-[300px] space-y-2">
                 <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Active Floor
+                  Pavimento Ativo
                 </label>
 
                 <div className="flex gap-2">
@@ -356,7 +377,7 @@ function AdminEditor() {
                   className="gap-2"
                 >
                   <MousePointer2 className="h-4 w-4" />
-                  Select
+                  Selecionar
                 </Button>
                 <Button
                   variant={activeTool === "rect" ? "default" : "ghost"}
@@ -365,7 +386,7 @@ function AdminEditor() {
                   className="gap-2"
                 >
                   <Square className="h-4 w-4" />
-                  Rectangle
+                  Retângulo
                 </Button>
                 <Button
                   variant={activeTool === "polygon" ? "default" : "ghost"}
@@ -374,7 +395,7 @@ function AdminEditor() {
                   className="gap-2"
                 >
                   <Hexagon className="h-4 w-4" />
-                  Polygon
+                  Polígono
                 </Button>
               </div>
             </div>
@@ -398,14 +419,15 @@ function AdminEditor() {
             <strong>Instructions:</strong>
             <ul className="list-disc list-inside mt-1 space-y-1">
               <li>
-                <strong>Select:</strong> Click room to Edit/Delete. Drag to
-                move.
+                <strong>Selecionar:</strong> Clique na sala para editar/excluir.
+                Arraste para mover.
               </li>
               <li>
-                <strong>Rectangle:</strong> Drag to draw.
+                <strong>Retângulo:</strong> Arraste para desenhar.
               </li>
               <li>
-                <strong>Polygon:</strong> Click points, double-click to close.
+                <strong>Polígono:</strong> Clique nos pontos indicados e clique
+                duas vezes para fechar.
               </li>
             </ul>
           </div>
