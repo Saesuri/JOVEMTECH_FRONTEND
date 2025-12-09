@@ -16,6 +16,8 @@ import Login from "./pages/Login";
 import { AuthProvider } from "./context/AuthProvider";
 import { useAuth } from "./context/AuthContext";
 import { HelpBtn } from "./components/HelpBtn";
+import AdminSettings from "./pages/AdminSettings";
+import Profile from "./pages/Profile";
 
 /**
  * Wrapper to protect routes based on auth status and role
@@ -67,6 +69,14 @@ function App() {
             <Routes>
               {/* Public Route */}
               <Route path="/login" element={<Login />} />
+              <Route
+                path="/profile" // <--- NEW ROUTE
+                element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* --- ADMIN ROUTES --- */}
               <Route
@@ -102,6 +112,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <MyBookings />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/settings"
+                element={
+                  <ProtectedRoute requireAdmin={true}>
+                    <AdminSettings />
                   </ProtectedRoute>
                 }
               />

@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, Calendar, Map, User, Settings } from "lucide-react";
+import { LogOut, Calendar, Map, User } from "lucide-react";
 
 export function Navbar() {
   const { user, signOut, isAdmin } = useAuth();
@@ -53,14 +53,25 @@ export function Navbar() {
             </Link>
 
             {isAdmin && (
-              <>
+              <div className="flex items-center space-x-2 border-l pl-4 ml-2">
                 <Link to="/admin">
-                  <Button variant="ghost">Editor</Button>
+                  <Button variant="ghost" size="sm">
+                    Editor
+                  </Button>
                 </Link>
                 <Link to="/admin/bookings">
-                  <Button variant="ghost">Dashboard</Button>
+                  <Button variant="ghost" size="sm">
+                    Dashboard
+                  </Button>
                 </Link>
-              </>
+                <Link to="/admin/settings">
+                  {" "}
+                  {/* NEW LINK */}
+                  <Button variant="ghost" size="sm">
+                    Config
+                  </Button>
+                </Link>
+              </div>
             )}
           </nav>
         </div>
@@ -91,7 +102,9 @@ export function Navbar() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate("/my-bookings")}>
+              <DropdownMenuItem onClick={() => navigate("/profile")}>
+                {" "}
+                {/* CHANGED from /my-bookings */}
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </DropdownMenuItem>

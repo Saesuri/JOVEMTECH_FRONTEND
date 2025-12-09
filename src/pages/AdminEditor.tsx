@@ -154,21 +154,15 @@ function AdminEditor() {
     }
   };
 
-  const handleUpdateRoom = async (
-    id: string,
-    updates: { name: string; capacity: number; type: string }
-  ) => {
+    const handleUpdateRoom = async (id: string, updates: { name: string; capacity: number; type: string; amenities: string[] }) => {
     try {
-      await spaceService.update(id, updates);
-      setRooms((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, name: updates.name } : r))
-      );
+      // Just pass 'updates' directly, spaceService.update handles Partial<Space>
+      await spaceService.update(id, updates); 
+      setRooms(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r));
       toast.success("Room updated");
     } catch (error) {
-      setRooms((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, name: updates.name } : r))
-      );
-      toast("Room updated locally", { icon: "⚠️" });
+      setRooms(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r));
+      toast("Room updated locally", { icon: '⚠️' });
     }
   };
 

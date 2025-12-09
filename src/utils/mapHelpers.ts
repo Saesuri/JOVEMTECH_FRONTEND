@@ -33,6 +33,10 @@ export const mapSpacesToShapes = (spaces: Space[]): RoomShape[] => {
       loadedShapes.push({
         id: space.id,
         name: space.name,
+        is_active: space.is_active,
+        capacity: space.capacity, // Map it
+        type: space.type, // Map it
+        amenities: space.amenities || [],
         shapeType: "rect",
         data: space.coordinates,
       });
@@ -42,6 +46,10 @@ export const mapSpacesToShapes = (spaces: Space[]): RoomShape[] => {
       loadedShapes.push({
         id: space.id,
         name: space.name,
+        is_active: space.is_active,
+        capacity: space.capacity, // Map it
+        type: space.type, // Map it
+        amenities: space.amenities || [],
         shapeType: "polygon",
         data: space.coordinates,
       });

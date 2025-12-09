@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { bookingService, type BookingWithSpace } from "../services/api";
+import { bookingService } from "../services/api";
+import type { BookingWithSpace } from "../types/apiTypes"; // <--- FIXED IMPORT
 import { toast } from "sonner";
-import { format } from "date-fns"; // Standard JS Date formatting is fine too, but let's stick to native Intl for now to save installing libs
+import {
+  generateGoogleCalendarUrl,
+  generateOutlookUrl,
+} from "../utils/calendarLinks";
+import { formatDate, formatTimeRange } from "../utils/formatters";
 
-// SHADCN IMPORTS
 import {
   Table,
   TableBody,
@@ -34,7 +38,20 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { CalendarX, Clock, MapPin } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  CalendarX,
+  Clock,
+  MapPin,
+  Trash2,
+  CalendarPlus,
+  ExternalLink,
+} from "lucide-react";
 
 const MyBookings = () => {
   const { user } = useAuth();
@@ -61,7 +78,7 @@ const MyBookings = () => {
   }, [user]);
 
   const handleCancel = async (id: string) => {
-    setDeletingId(id); // Show loading state on button
+    setDeletingId(id);
     try {
       await bookingService.cancel(id);
       setBookings((prev) => prev.filter((b) => b.id !== id));
@@ -74,30 +91,24 @@ const MyBookings = () => {
     }
   };
 
-  // Helper for Date Formatting (e.g., "Mon, Dec 12, 2023")
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat("en-US", {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    }).format(date);
-  };
-
-  // Helper for Time Formatting (e.g., "14:00 - 15:00")
-  const formatTimeRange = (start: string, end: string) => {
-    const s = new Date(start);
-    const e = new Date(end);
-    const timeOpt: Intl.DateTimeFormatOptions = {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
+  const handleAddToCalendar = (
+    type: "google" | "outlook" | "office",
+    booking: BookingWithSpace
+  ) => {
+    const event = {
+      title: `Booking: ${booking.spaces?.name}`,
+      start: booking.start_time,
+      end: booking.end_time,
+      location: `CajuHub - ${booking.spaces?.name}`,
+      description: `Room Type: ${booking.spaces?.type}`,
     };
-    return `${s.toLocaleTimeString([], timeOpt)} - ${e.toLocaleTimeString(
-      [],
-      timeOpt
-    )}`;
+
+    let url = "";
+    if (type === "google") url = generateGoogleCalendarUrl(event);
+    if (type === "outlook") url = generateOutlookUrl(event, "live");
+    if (type === "office") url = generateOutlookUrl(event, "office");
+
+    window.open(url, "_blank");
   };
 
   if (loading) {
@@ -122,10 +133,10 @@ const MyBookings = () => {
 
   return (
     <div className="container mx-auto py-10 max-w-5xl">
-      <Card className="shadow-md">
+      <Card className="shadow-md border-t-4 border-t-primary">
         <CardHeader>
           <CardTitle className="text-2xl flex items-center gap-2">
-            <Clock className="h-6 w-6" />
+            <Clock className="h-6 w-6 text-primary" />
             Booking History
           </CardTitle>
           <CardDescription>
@@ -134,14 +145,19 @@ const MyBookings = () => {
         </CardHeader>
         <CardContent>
           {bookings.length === 0 ? (
-            <div className="text-center py-10 text-muted-foreground">
-              <CalendarX className="h-12 w-12 mx-auto mb-4 opacity-20" />
-              <p>You haven't made any bookings yet.</p>
+            <div className="text-center py-16 text-muted-foreground flex flex-col items-center">
+              <div className="bg-muted p-4 rounded-full mb-4">
+                <CalendarX className="h-10 w-10 opacity-50" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground">
+                No bookings found
+              </h3>
+              <p>You haven't made any reservations yet.</p>
             </div>
           ) : (
-            <div className="rounded-md border">
+            <div className="rounded-md border overflow-hidden">
               <Table>
-                <TableHeader>
+                <TableHeader className="bg-muted/50">
                   <TableRow>
                     <TableHead>Room</TableHead>
                     <TableHead>Date</TableHead>
@@ -157,13 +173,21 @@ const MyBookings = () => {
                     return (
                       <TableRow
                         key={booking.id}
-                        className={isPast ? "opacity-60 bg-muted/50" : ""}
+                        className={
+                          isPast
+                            ? "opacity-60 bg-muted/30"
+                            : "hover:bg-muted/10"
+                        }
                       >
                         <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4 text-muted-foreground" />
+                          <div className="flex items-center gap-3">
+                            <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-md text-blue-600 dark:text-blue-400">
+                              <MapPin className="h-4 w-4" />
+                            </div>
                             <div>
-                              {booking.spaces?.name || "Unknown"}
+                              <div className="font-semibold">
+                                {booking.spaces?.name || "Unknown"}
+                              </div>
                               <div className="text-xs text-muted-foreground capitalize">
                                 {booking.spaces?.type?.replace("_", " ")}
                               </div>
@@ -171,7 +195,7 @@ const MyBookings = () => {
                           </div>
                         </TableCell>
                         <TableCell>{formatDate(booking.start_time)}</TableCell>
-                        <TableCell>
+                        <TableCell className="font-mono text-xs">
                           {formatTimeRange(
                             booking.start_time,
                             booking.end_time
@@ -179,49 +203,100 @@ const MyBookings = () => {
                         </TableCell>
                         <TableCell>
                           {isPast ? (
-                            <Badge variant="secondary">Completed</Badge>
+                            <Badge
+                              variant="outline"
+                              className="text-muted-foreground"
+                            >
+                              Completed
+                            </Badge>
                           ) : (
-                            <Badge className="bg-green-600 hover:bg-green-700">
+                            <Badge className="bg-green-600 hover:bg-green-700 border-transparent text-white shadow hover:shadow-md transition-all">
                               Upcoming
                             </Badge>
                           )}
                         </TableCell>
                         <TableCell className="text-right">
                           {!isPast && (
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button
-                                  variant="destructive"
-                                  size="sm"
-                                  disabled={deletingId === booking.id}
-                                >
-                                  {deletingId === booking.id ? "..." : "Cancel"}
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>
-                                    Cancel Booking?
-                                  </AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    This will release the room{" "}
-                                    <strong>{booking.spaces?.name}</strong>{" "}
-                                    immediately. This action cannot be undone.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>
-                                    Keep Booking
-                                  </AlertDialogCancel>
-                                  <AlertDialogAction
-                                    className="bg-red-600 hover:bg-red-700"
-                                    onClick={() => handleCancel(booking.id)}
+                            <div className="flex justify-end gap-2">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="gap-2"
                                   >
-                                    Yes, Cancel it
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
+                                    <CalendarPlus className="h-4 w-4" />
+                                    Add to Calendar
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleAddToCalendar("google", booking)
+                                    }
+                                  >
+                                    <ExternalLink className="mr-2 h-4 w-4" />{" "}
+                                    Google Calendar
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleAddToCalendar("outlook", booking)
+                                    }
+                                  >
+                                    <ExternalLink className="mr-2 h-4 w-4" />{" "}
+                                    Outlook.com
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleAddToCalendar("office", booking)
+                                    }
+                                  >
+                                    <ExternalLink className="mr-2 h-4 w-4" />{" "}
+                                    Office 365
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
+                                    disabled={deletingId === booking.id}
+                                  >
+                                    {deletingId === booking.id ? (
+                                      "..."
+                                    ) : (
+                                      <Trash2 className="h-4 w-4" />
+                                    )}
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle className="text-red-600">
+                                      Cancel Booking?
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      This will release the room{" "}
+                                      <strong>{booking.spaces?.name}</strong>{" "}
+                                      immediately.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>
+                                      Keep Booking
+                                    </AlertDialogCancel>
+                                    <AlertDialogAction
+                                      className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                                      onClick={() => handleCancel(booking.id)}
+                                    >
+                                      Yes, Cancel it
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
                           )}
                         </TableCell>
                       </TableRow>

@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { toast } from "sonner";
 import { type RoomShape } from "../../types/apiTypes";
 import { bookingService } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
+import { toLocalISOString } from "../../utils/dateUtils";
 
 // SHADCN IMPORTS
 import { Button } from "@/components/ui/button";
@@ -51,8 +52,8 @@ const BookingModal: React.FC<BookingModalProps> = ({
       return;
     }
 
-    const startIso = new Date(`${date}T${startTime}:00`).toISOString();
-    const endIso = new Date(`${date}T${endTime}:00`).toISOString();
+    const startIso = toLocalISOString(date, startTime);
+    const endIso = toLocalISOString(date, endTime);
 
     const promise = bookingService.create({
       space_id: room!.id,

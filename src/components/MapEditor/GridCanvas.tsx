@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { Stage, Layer, Line, Rect, Circle, Group, Text } from "react-konva";
 import Konva from "konva";
 import type { RoomShape, RectCoordinates } from "../../types/apiTypes";
+import { toast } from "sonner";
+import { Users, Wifi, Tv, Projector, Monitor, Mic, Wind, Ban } from "lucide-react";
 
 interface GridCanvasProps {
   width: number;
@@ -13,6 +15,7 @@ interface GridCanvasProps {
   readOnly?: boolean;
   onRoomClick?: (room: RoomShape) => void;
   occupiedIds?: string[];
+  dimmedIds?: string[];
 }
 
 const GridCanvas: React.FC<GridCanvasProps> = ({
@@ -25,17 +28,19 @@ const GridCanvas: React.FC<GridCanvasProps> = ({
   readOnly = false,
   onRoomClick,
   occupiedIds = [],
+  dimmedIds = []
 }) => {
-  // Temporary State for Drawing
+  // --- STATE ---
   const [newRect, setNewRect] = useState<RectCoordinates | null>(null);
   const [polyPoints, setPolyPoints] = useState<number[]>([]);
-  const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(
-    null
-  );
+  const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
+  
+  // Hover Tooltip State
+  const [hoveredRoom, setHoveredRoom] = useState<{ x: number, y: number, data: RoomShape } | null>(null);
 
   const isDrawing = useRef<boolean>(false);
 
-  // --- Handle Escape Key ---
+  // --- EFFECT: ESCAPE KEY ---
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -52,21 +57,44 @@ const GridCanvas: React.FC<GridCanvasProps> = ({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [newRect, polyPoints]);
 
-  // Helper: Snap to Grid
+  // --- HELPERS ---
   const snap = (val: number): number => Math.round(val / snapSize) * snapSize;
 
-  // Helper: Get Colors
-  const getFillColor = (id: string) => {
-    if (occupiedIds.includes(id)) return "#ffcccc"; // Red (Occupied)
-    return "#ccffcc"; // Green (Free)
+  const getFillColor = (room: RoomShape) => {
+    // 1. Check Maintenance
+    const isActive = (room as any).is_active !== false;
+    if (!isActive) return "#e2e8f0"; // Gray (Maintenance)
+
+    // 2. Check Occupancy
+    if (occupiedIds.includes(room.id)) return "#fee2e2"; // Light Red (Occupied)
+    
+    // 3. Admin Mode (Blue) vs User Mode (Green)
+    if (!readOnly) return "#bfdbfe"; // Blue-200
+    return "#dcfce7"; // Green-100 (Available)
   };
 
-  const getStrokeColor = (id: string) => {
-    if (occupiedIds.includes(id)) return "#cc0000";
-    return "#009900"; // Green Border
+  const getStrokeColor = (room: RoomShape) => {
+    const isActive = (room as any).is_active !== false;
+    if (!isActive) return "#94a3b8"; // Slate-400
+    if (occupiedIds.includes(room.id)) return "#ef4444"; // Red-500
+    if (!readOnly) return "#3b82f6"; // Blue-500
+    return "#22c55e"; // Green-500
   };
 
-  // --- MOUSE DOWN ---
+  const renderAmenityIcon = (type: string) => {
+    const props = { className: "h-3 w-3" };
+    switch(type) {
+      case 'wifi': return <Wifi {...props} />;
+      case 'tv': return <Tv {...props} />;
+      case 'projector': return <Projector {...props} />;
+      case 'video_conf': return <Monitor {...props} />;
+      case 'mic': return <Mic {...props} />;
+      case 'ac': return <Wind {...props} />;
+      default: return null;
+    }
+  };
+
+  // --- MOUSE HANDLERS ---
   const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
     if (readOnly) return;
     if (tool === "select") return;
@@ -84,9 +112,7 @@ const GridCanvas: React.FC<GridCanvasProps> = ({
       if (polyPoints.length >= 6) {
         const startX = polyPoints[0];
         const startY = polyPoints[1];
-        const dist = Math.sqrt(
-          Math.pow(snX - startX, 2) + Math.pow(snY - startY, 2)
-        );
+        const dist = Math.sqrt(Math.pow(snX - startX, 2) + Math.pow(snY - startY, 2));
         if (dist < 10) {
           finishPolygon();
           return;
@@ -96,10 +122,7 @@ const GridCanvas: React.FC<GridCanvasProps> = ({
     }
   };
 
-  // --- MOUSE MOVE ---
   const handleMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    if (readOnly) return;
-
     const stage = e.target.getStage();
     if (!stage) return;
     const { x, y } = stage.getPointerPosition() || { x: 0, y: 0 };
@@ -107,6 +130,14 @@ const GridCanvas: React.FC<GridCanvasProps> = ({
     const snY = snap(y);
 
     setMousePos({ x: snX, y: snY });
+
+    // Update Tooltip Position if active
+    if (hoveredRoom) {
+       // We use raw x/y for smooth tooltip movement
+       setHoveredRoom(prev => prev ? ({ ...prev, x, y }) : null);
+    }
+
+    if (readOnly) return;
 
     if (tool === "rect" && isDrawing.current && newRect) {
       setNewRect({
@@ -117,7 +148,6 @@ const GridCanvas: React.FC<GridCanvasProps> = ({
     }
   };
 
-  // --- MOUSE UP ---
   const handleMouseUp = () => {
     if (readOnly) return;
 
@@ -136,7 +166,6 @@ const GridCanvas: React.FC<GridCanvasProps> = ({
     }
   };
 
-  // --- FINISH POLYGON ---
   const finishPolygon = () => {
     if (readOnly || !setRectangles) return;
     if (polyPoints.length < 6) return;
@@ -152,58 +181,46 @@ const GridCanvas: React.FC<GridCanvasProps> = ({
     setPolyPoints([]);
   };
 
-  // --- RENDER GRID ---
   const renderGrid = () => {
     const lines = [];
     for (let i = 0; i <= width / snapSize; i++) {
-      lines.push(
-        <Line
-          key={`v-${i}`}
-          points={[i * snapSize, 0, i * snapSize, height]}
-          stroke="#eee"
-          strokeWidth={1}
-        />
-      );
+      lines.push(<Line key={`v-${i}`} points={[i * snapSize, 0, i * snapSize, height]} stroke="#f1f5f9" strokeWidth={1} />);
     }
     for (let j = 0; j <= height / snapSize; j++) {
-      lines.push(
-        <Line
-          key={`h-${j}`}
-          points={[0, j * snapSize, width, j * snapSize]}
-          stroke="#eee"
-          strokeWidth={1}
-        />
-      );
+      lines.push(<Line key={`h-${j}`} points={[0, j * snapSize, width, j * snapSize]} stroke="#f1f5f9" strokeWidth={1} />);
     }
     return lines;
   };
 
   return (
-    <div className="border border-slate-300 inline-block bg-white shadow-sm rounded overflow-hidden">
+    <div className="border border-slate-200 inline-block bg-white shadow-sm rounded-lg overflow-hidden cursor-crosshair relative">
       <Stage
         width={width}
         height={height}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
+        onMouseLeave={() => setHoveredRoom(null)}
         onDblClick={() => !readOnly && tool === "polygon" && finishPolygon()}
       >
         <Layer>
           {renderGrid()}
 
-          {/* RENDER ROOMS */}
           {rectangles.map((room) => {
             const isRect = room.shapeType === "rect";
-            const hasStatus = occupiedIds.length > 0 || readOnly;
-            const fillColor = hasStatus ? getFillColor(room.id) : "#aaddff";
-            const strokeColor = hasStatus ? getStrokeColor(room.id) : "#0066cc";
+            const fillColor = getFillColor(room);
+            const strokeColor = getStrokeColor(room);
+            const isActive = (room as any).is_active !== false;
+            
+            // Filters logic
+            const isDimmed = dimmedIds.includes(room.id);
+            const opacity = isDimmed ? 0.1 : 0.9;
 
-            let textX = 0;
-            let textY = 0;
-
+            // Center Text Logic
+            let textX = 0, textY = 0;
             if (isRect) {
-              textX = room.data.x + room.data.width / 2;
-              textY = room.data.y + room.data.height / 2;
+              textX = room.data.x + (room.data.width / 2);
+              textY = room.data.y + (room.data.height / 2);
             } else {
               const points = room.data.points;
               const xCoords = points.filter((_, i) => i % 2 === 0);
@@ -215,48 +232,52 @@ const GridCanvas: React.FC<GridCanvasProps> = ({
             return (
               <Group
                 key={room.id}
-                onClick={() => onRoomClick?.(room)}
-                onTap={() => onRoomClick?.(room)}
+                opacity={opacity}
+                onClick={() => {
+                  if (isDimmed) return;
+                  if (!isActive && readOnly) {
+                    toast("This room is currently under maintenance", { icon: <Ban className="h-4 w-4 text-red-500"/> });
+                    return;
+                  }
+                  onRoomClick?.(room);
+                }}
+                onTap={() => {
+                  if (isDimmed || (!isActive && readOnly)) return;
+                  onRoomClick?.(room);
+                }}
                 onMouseEnter={(e) => {
+                  if (isDimmed) return;
                   const stage = e.target.getStage();
-                  if (stage) stage.container().style.cursor = "pointer";
+                  if (stage) {
+                    if (!isActive && readOnly) stage.container().style.cursor = 'not-allowed';
+                    else stage.container().style.cursor = 'pointer';
+                  }
+                  // Show Tooltip
+                  const pointer = stage?.getPointerPosition();
+                  if (pointer) {
+                    setHoveredRoom({ x: pointer.x, y: pointer.y, data: room });
+                  }
                 }}
                 onMouseLeave={(e) => {
                   const stage = e.target.getStage();
-                  if (stage) stage.container().style.cursor = "default";
+                  if (stage) stage.container().style.cursor = 'default';
+                  setHoveredRoom(null);
                 }}
-                draggable={!readOnly && tool === "select"}
+                draggable={!readOnly && tool === "select" && !isDimmed}
                 onDragEnd={(e) => {
                   if (readOnly || !setRectangles) return;
                   const node = e.target;
-
-                  // 1. Calculate the drag distance relative to start
-                  const dragX = Math.round(node.x() / snapSize) * snapSize;
-                  const dragY = Math.round(node.y() / snapSize) * snapSize;
-
-                  // 2. Visually reset the group (so we can update the internal data instead)
+                  const x = Math.round(node.x() / snapSize) * snapSize;
+                  const y = Math.round(node.y() / snapSize) * snapSize;
                   node.position({ x: 0, y: 0 });
 
-                  // 3. Update State safely
-                  setRectangles((prev) =>
-                    prev.map((r) => {
-                      if (r.id !== room.id) return r;
-
-                      // FIX: Strictly check type of 'r' inside the map to satisfy TS
-                      if (r.shapeType === "rect") {
-                        return {
-                          ...r,
-                          data: {
-                            ...r.data,
-                            x: r.data.x + dragX,
-                            y: r.data.y + dragY,
-                          },
-                        };
-                      }
-                      // Note: Polygon dragging logic omitted for simplicity
-                      return r;
-                    })
-                  );
+                  setRectangles(prev => prev.map(r => {
+                    if (r.id !== room.id) return r;
+                    if (r.shapeType === "rect") {
+                      return { ...r, data: { ...r.data, x: r.data.x + x, y: r.data.y + y } };
+                    }
+                    return r; 
+                  }));
                 }}
               >
                 {isRect ? (
@@ -268,7 +289,9 @@ const GridCanvas: React.FC<GridCanvasProps> = ({
                     fill={fillColor}
                     stroke={strokeColor}
                     strokeWidth={2}
-                    opacity={0.8}
+                    shadowColor="black"
+                    shadowBlur={hoveredRoom?.data.id === room.id ? 10 : 0}
+                    shadowOpacity={0.2}
                   />
                 ) : (
                   <Line
@@ -277,20 +300,24 @@ const GridCanvas: React.FC<GridCanvasProps> = ({
                     stroke={strokeColor}
                     strokeWidth={2}
                     closed={true}
-                    opacity={0.8}
+                    shadowColor="black"
+                    shadowBlur={hoveredRoom?.data.id === room.id ? 10 : 0}
+                    shadowOpacity={0.2}
                   />
                 )}
-
-                <Text
+                
+                <Text 
                   x={textX}
                   y={textY}
                   text={room.name}
-                  fontSize={12}
-                  fontFamily="Arial"
+                  fontSize={11}
+                  fontFamily="Inter, sans-serif"
                   fontStyle="bold"
-                  fill="#1e293b"
+                  fill="#334155" // Slate-700
+                  align="center"
+                  verticalAlign="middle"
                   offsetX={room.name.length * 3}
-                  offsetY={6}
+                  offsetY={5}
                   listening={false}
                 />
               </Group>
@@ -298,43 +325,78 @@ const GridCanvas: React.FC<GridCanvasProps> = ({
           })}
 
           {!readOnly && newRect && (
-            <Rect
-              x={newRect.x}
-              y={newRect.y}
-              width={newRect.width}
-              height={newRect.height}
-              fill="#55cc55"
-              opacity={0.5}
-            />
+            <Rect x={newRect.x} y={newRect.y} width={newRect.width} height={newRect.height} fill="#22c55e" opacity={0.4} stroke="#16a34a" strokeWidth={1} dash={[4, 4]} />
           )}
 
           {!readOnly && tool === "polygon" && polyPoints.length > 0 && (
-            <Group>
-              <Line points={polyPoints} stroke="#55cc55" strokeWidth={2} />
-              {mousePos && polyPoints.length >= 2 && (
-                <Line
-                  points={[...polyPoints.slice(-2), mousePos.x, mousePos.y]}
-                  stroke="#55cc55"
-                  strokeWidth={1}
-                  dash={[5, 5]}
-                />
-              )}
-              {polyPoints.map(
-                (_, i) =>
-                  i % 2 === 0 && (
-                    <Circle
-                      key={i}
-                      x={polyPoints[i]}
-                      y={polyPoints[i + 1]}
-                      radius={3}
-                      fill="#0066cc"
-                    />
-                  )
-              )}
-            </Group>
+             <Group>
+               <Line points={polyPoints} stroke="#22c55e" strokeWidth={2} />
+               {mousePos && polyPoints.length >= 2 && (
+                 <Line points={[...polyPoints.slice(-2), mousePos.x, mousePos.y]} stroke="#22c55e" strokeWidth={1} dash={[5, 5]} />
+               )}
+               {polyPoints.map((_, i) => i % 2 === 0 && <Circle key={i} x={polyPoints[i]} y={polyPoints[i+1]} radius={4} fill="#15803d" />)}
+             </Group>
           )}
         </Layer>
       </Stage>
+
+      {/* HOVER TOOLTIP */}
+      {hoveredRoom && (
+        <div 
+          className="absolute z-50 pointer-events-none bg-white/95 backdrop-blur-sm dark:bg-slate-900/95 border border-slate-200 dark:border-slate-700 shadow-xl rounded-lg p-3 w-56 transition-opacity duration-150 animate-in fade-in zoom-in-95"
+          style={{ 
+            left: hoveredRoom.x + 20, 
+            top: hoveredRoom.y + 20 
+          }}
+        >
+          <div className="flex justify-between items-start mb-1">
+            <h4 className="font-bold text-sm text-foreground">{hoveredRoom.data.name}</h4>
+            {(hoveredRoom.data as any).is_active === false && <Ban className="h-4 w-4 text-red-500" />}
+          </div>
+          
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3">
+            <Users className="h-3 w-3" />
+            <span>Capacity: {hoveredRoom.data.capacity || "?"}</span>
+            <span className="mx-1">•</span>
+            <span className="capitalize">{hoveredRoom.data.type?.replace('_', ' ') || 'Space'}</span>
+          </div>
+
+          {/* Amenities Grid */}
+          {hoveredRoom.data.amenities && hoveredRoom.data.amenities.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 pt-2 border-t border-dashed">
+              {hoveredRoom.data.amenities.map(a => (
+                <div 
+                  key={a} 
+                  className="bg-slate-100 dark:bg-slate-800 p-1.5 rounded-md text-slate-600 dark:text-slate-400 flex items-center justify-center"
+                  title={a}
+                >
+                  {renderAmenityIcon(a) || <span className="text-[10px] uppercase font-bold px-1">{a.substring(0,2)}</span>}
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {/* Status Badge */}
+          <div className="mt-3 text-[10px] font-bold tracking-wide uppercase flex items-center gap-1">
+            {occupiedIds.includes(hoveredRoom.data.id) ? (
+              <>
+                <div className="h-2 w-2 rounded-full bg-red-500"></div>
+                <span className="text-red-600">Occupied</span>
+              </>
+            ) : (hoveredRoom.data as any).is_active === false ? (
+              <>
+                <div className="h-2 w-2 rounded-full bg-slate-400"></div>
+                <span className="text-slate-500">Maintenance</span>
+              </>
+            ) : (
+              <>
+                <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                <span className="text-green-600">Available</span>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

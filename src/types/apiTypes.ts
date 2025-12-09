@@ -1,6 +1,6 @@
 // client/src/types/apiTypes.ts
 
-// --- Coordinate Types ---
+// --- GEOMETRY ---
 export interface RectCoordinates {
   x: number;
   y: number;
@@ -9,10 +9,33 @@ export interface RectCoordinates {
 }
 
 export interface PolygonCoordinates {
-  points: number[]; // [x1, y1, x2, y2, x3, y3...]
+  points: number[];
 }
 
-// --- Domain Models ---
+export type RoomShape =
+  | {
+    id: string;
+    name: string;
+    is_active?: boolean;
+    capacity?: number;
+    type?: string;
+    shapeType: "rect";
+    amenities?: string[];
+    data: RectCoordinates;
+  }
+  | {
+    id: string;
+    name: string;
+    is_active?: boolean;
+    capacity?: number;
+    type?: string;
+    shapeType: "polygon";
+    amenities?: string[];
+    data: PolygonCoordinates;
+  };
+
+// --- DATABASE ENTITIES ---
+
 export interface Floor {
   id: string;
   name: string;
@@ -21,29 +44,6 @@ export interface Floor {
   created_at: string;
 }
 
-export interface CreateFloorDTO {
-  name: string;
-  width: number;
-  height: number;
-}
-
-// A Room in the UI can be one of two shapes
-// We use a "Discriminated Union" (the 'type' field tells TS which one it is)
-export type RoomShape =
-  | {
-      id: string;
-      name: string;
-      shapeType: "rect";
-      data: RectCoordinates;
-    }
-  | {
-      id: string;
-      name: string;
-      shapeType: "polygon";
-      data: PolygonCoordinates;
-    };
-
-// --- DTOs (Data Transfer Objects) for API ---
 export interface Space {
   id: string;
   floor_id: string;
@@ -51,25 +51,87 @@ export interface Space {
   type: string;
   capacity: number;
   coordinates: RectCoordinates | PolygonCoordinates | unknown;
+  amenities?: string[];
+  is_active?: boolean;
   created_at: string;
 }
 
-export interface CreateSpaceDTO {
-  id?: string; // <--- Add this field (Optional)
-  floor_id: string;
-  name: string;
-  type: string;
-  capacity: number;
-  coordinates: RectCoordinates | PolygonCoordinates;
+// Joined Space (includes floor name)
+export interface SpaceWithFloor extends Space {
+  floors: { name: string };
 }
 
-// Add these to your existing types
+export interface RoomType {
+  id: string;
+  value: string;
+  label: string;
+}
+
 export interface Booking {
   id: string;
   space_id: string;
   user_id: string;
-  start_time: string; // ISO String
-  end_time: string; // ISO String
+  start_time: string;
+  end_time: string;
+}
+
+// Booking with joined Space details (for User Dashboard)
+export interface BookingWithSpace extends Booking {
+  spaces: {
+    name: string;
+    type: string;
+  };
+}
+
+// Booking with joined Profile & Space (for Admin Dashboard)
+export interface BookingAdminResponse {
+  id: string;
+  start_time: string;
+  end_time: string;
+  created_at: string;
+  spaces: { name: string; type: string };
+  profiles: { email: string };
+}
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  role: "admin" | "user";
+  created_at: string;
+  full_name?: string;
+  phone?: string;
+  department?: string;
+}
+
+export interface AuditLog {
+  id: string;
+  action: string;
+  details: string;
+  created_at: string;
+  profiles: { email: string };
+}
+
+export interface SystemSettings {
+  business_start: string;
+  business_end: string;
+}
+
+// --- DTOs (Data Transfer Objects for creating/updating) ---
+
+export interface CreateFloorDTO {
+  name: string;
+  width: number;
+  height: number;
+}
+
+export interface CreateSpaceDTO {
+  id?: string;
+  floor_id: string;
+  name: string;
+  type: string;
+  capacity: number;
+  amenities?: string[];
+  coordinates: RectCoordinates | PolygonCoordinates;
 }
 
 export interface CreateBookingDTO {

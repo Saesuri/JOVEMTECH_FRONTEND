@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, Users, CalendarCheck } from "lucide-react";
-import type { BookingAdminResponse } from "../services/api";
+import type { BookingAdminResponse } from "../types/apiTypes";
 
 interface DashboardStatsProps {
   bookings: BookingAdminResponse[];
