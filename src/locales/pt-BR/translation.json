@@ -49,6 +49,7 @@
     "submitSignup": "Criar conta",
     "switchToSignup": "Precisa criar uma conta? Cadastre-se",
     "switchToLogin": "Já tem uma conta? Entrar",
+    "forgotPassword": "Esqueceu sua senha?",
     "departments": {
       "faculty": "Corpo Docente (Professores)",
       "it": "Suporte de TI",
@@ -82,10 +83,44 @@
       "filtered": "Filtrado"
     },
     "mapControls": "Scroll para zoom • Arraste para mover",
+    "roomList": "Salas Disponíveis",
+    "noRoomsFound": "Nenhuma sala corresponde aos seus filtros.",
+    "clickToBook": "Clique para reservar",
+    "maintenance": "Em manutenção",
     "messages": {
       "roomOccupied": "Esta sala está ocupada durante o horário selecionado.",
       "roomMaintenance": "Sala em manutenção.",
       "configLoadFailed": "Falha ao carregar configuração"
+    },
+    "viewMode": {
+      "map": "Mapa",
+      "calendar": "Calendário"
+    }
+  },
+  "calendar": {
+    "today": "Hoje",
+    "booked": "Reservado",
+    "available": "Disponível",
+    "past": "Passado",
+    "selectRoom": "Selecione uma Sala",
+    "selectRoomHint": "Escolha uma sala da lista para ver sua agenda semanal.",
+    "bookRoom": "Reservar Sala"
+  },
+  "bookingModal": {
+    "title": "Reservar {{name}}",
+    "subtitle": "Confirme a data e horário da sua reserva.",
+    "scheduleTitle": "Agendamento",
+    "roomDetails": "Detalhes da Sala",
+    "people": "pessoas",
+    "amenities": "Comodidades",
+    "confirm": "Confirmar Reserva",
+    "messages": {
+      "loginRequired": "Você precisa estar logado para reservar.",
+      "fillAllFields": "Por favor, preencha todos os campos.",
+      "checking": "Verificando disponibilidade...",
+      "confirmed": "Reserva Confirmada! ✅",
+      "conflict": "Conflito: Horário já reservado ❌",
+      "failed": "Falha ao reservar ❌"
     }
   },
   "myBookings": {
@@ -115,6 +150,10 @@
     "department": "Departamento",
     "email": "Endereço de Email",
     "emailNote": "O email não pode ser alterado.",
+    "security": "Segurança",
+    "password": "Senha",
+    "passwordNote": "Mantenha sua conta segura com uma senha forte.",
+    "changePassword": "Alterar Senha",
     "saveChanges": "Salvar Alterações",
     "saving": "Salvando...",
     "departments": {
@@ -158,6 +197,32 @@
       "exportStarted": "Exportação Inicializada"
     }
   },
+  "roomEdit": {
+    "title": "Editar Sala",
+    "subtitle": "Modificar {{name}}",
+    "name": "Nome",
+    "capacity": "Capacidade",
+    "description": "Descrição",
+    "descriptionPlaceholder": "Breve descrição da sala...",
+    "type": "Tipo",
+    "amenitiesLabel": "Comodidades e Equipamentos",
+    "confirmDelete": "Excluir \"{{name}}\"?",
+    "types": {
+      "meetingRoom": "Sala de Reunião",
+      "lab": "Laboratório de Informática",
+      "auditorium": "Auditório",
+      "office": "Escritório Compartilhado"
+    },
+    "amenities": {
+      "wifi": "Wi-Fi Dedicado",
+      "tv": "TV / Monitor",
+      "projector": "Projetor",
+      "whiteboard": "Quadro Branco",
+      "videoConf": "Videoconferência",
+      "ac": "Ar Condicionado",
+      "mic": "Microfone/Áudio"
+    }
+  },
   "stats": {
     "totalBookings": "Total de Reservas",
     "totalBookingsDesc": "Reservas de todos os tempos",
@@ -176,5 +241,115 @@
     "switch": "Idioma",
     "en": "English",
     "ptBR": "Português (BR)"
+  },
+  "resetPassword": {
+    "title": "Redefinir Senha",
+    "subtitle": "Insira seu email para receber um link de redefinição de senha.",
+    "submit": "Enviar Link de Redefinição",
+    "backToLogin": "Voltar para Login",
+    "emailSentTitle": "Verifique Seu Email",
+    "emailSentSubtitle": "Enviamos um link de redefinição de senha.",
+    "checkInbox": "Por favor, verifique sua caixa de entrada e clique no link para redefinir sua senha.",
+    "newPasswordTitle": "Criar Nova Senha",
+    "newPasswordSubtitle": "Digite sua nova senha abaixo.",
+    "newPassword": "Nova Senha",
+    "confirmPassword": "Confirmar Senha",
+    "updatePassword": "Atualizar Senha",
+    "messages": {
+      "emailSent": "Link de redefinição de senha enviado para seu email",
+      "requestFailed": "Falha ao enviar link de redefinição",
+      "passwordMismatch": "As senhas não coincidem",
+      "passwordTooShort": "A senha deve ter pelo menos 6 caracteres",
+      "passwordUpdated": "Senha atualizada com sucesso! Por favor, faça login com sua nova senha.",
+      "updateFailed": "Falha ao atualizar senha"
+    }
+  },
+  "changePassword": {
+    "title": "Alterar Senha",
+    "subtitle": "Atualize a senha da sua conta.",
+    "currentPassword": "Senha Atual",
+    "newPassword": "Nova Senha",
+    "confirmPassword": "Confirmar Nova Senha",
+    "passwordRequirement": "A senha deve ter pelo menos 6 caracteres.",
+    "submit": "Atualizar Senha",
+    "messages": {
+      "success": "Senha alterada com sucesso!",
+      "failed": "Falha ao alterar senha",
+      "passwordMismatch": "As novas senhas não coincidem",
+      "passwordTooShort": "A senha deve ter pelo menos 6 caracteres",
+      "samePassword": "A nova senha deve ser diferente da senha atual",
+      "currentPasswordWrong": "A senha atual está incorreta"
+    }
+  },
+  "floorManager": {
+    "title": "Gerenciar Pavimentos",
+    "subtitle": "Adicione novos níveis ou gerencie o atual.",
+    "tabs": {
+      "createNew": "Criar Novo",
+      "editCurrent": "Editar Atual"
+    },
+    "newFloorName": "Nome do Novo Pavimento",
+    "newFloorPlaceholder": "ex: 2º Andar, Cobertura",
+    "createFloor": "Criar Pavimento",
+    "renameLabel": "Renomear \"{{name}}\"",
+    "rename": "Renomear",
+    "deleteFloor": "Excluir Pavimento",
+    "checking": "Verificando...",
+    "messages": {
+      "enterName": "Digite um nome",
+      "statsFailed": "Falha ao verificar estatísticas do pavimento"
+    },
+    "alert": {
+      "title": "Você tem certeza absoluta?",
+      "warningWithBookings": "⚠️ ATENÇÃO: Este pavimento contém {{rooms}} salas e {{bookings}} RESERVAS ATIVAS. Excluí-lo cancelará todas essas reservas imediatamente.",
+      "warningWithRooms": "Este pavimento contém {{rooms}} salas. Todas serão excluídas.",
+      "emptyFloor": "Este pavimento está vazio. Tem certeza que deseja excluí-lo?",
+      "cannotUndo": "Esta ação não pode ser desfeita.",
+      "confirmDelete": "Sim, Excluir Tudo"
+    }
+  },
+  "editor": {
+    "title": "Editor de Pavimentos",
+    "subtitle": "Planeje o layout do seu espaço.",
+    "rooms": "Salas",
+    "saveLayout": "Salvar Layout",
+    "activeFloor": "Pavimento Ativo",
+    "tools": {
+      "select": "Selecionar",
+      "rectangle": "Retângulo",
+      "polygon": "Polígono"
+    },
+    "onboarding": {
+      "title": "Bem-vindo ao Editor de Mapa",
+      "subtitle": "Seu espaço de trabalho está vazio. Crie a planta do primeiro pavimento para desbloquear as ferramentas.",
+      "firstFloorLabel": "Nome do Primeiro Pavimento",
+      "floorPlaceholder": "ex: Térreo",
+      "createButton": "Criar Primeiro Pavimento"
+    },
+    "instructions": {
+      "title": "Instruções:",
+      "show": "Mostrar Instruções",
+      "selectDesc": "Clique na sala para editar/excluir. Arraste para mover.",
+      "rectDesc": "Arraste para desenhar.",
+      "polygonDesc": "Clique nos pontos para desenhar, clique duas vezes para fechar."
+    },
+    "messages": {
+      "loadFailed": "Falha ao carregar pavimento",
+      "enterName": "Por favor, insira um nome",
+      "floorCreated": "Pavimento criado com sucesso!",
+      "floorCreateFailed": "Falha ao criar pavimento",
+      "floorRenamed": "Pavimento renomeado com sucesso!",
+      "floorRenameFailed": "Falha ao renomear pavimento",
+      "floorDeleted": "Pavimento excluído com sucesso!",
+      "floorDeleteFailed": "Falha ao excluir pavimento",
+      "spaceUpdated": "Espaço atualizado com sucesso!",
+      "spaceUpdatedLocally": "Espaço atualizado localmente",
+      "spaceDeleted": "Espaço excluído com sucesso!",
+      "spaceDeletedLocally": "Espaço excluído localmente",
+      "noFloorSelected": "Nenhum pavimento selecionado",
+      "savingLayout": "Salvando layout...",
+      "layoutSaved": "Layout salvo com sucesso!",
+      "layoutSaveFailed": "Falha ao salvar layout"
+    }
   }
 }

@@ -33,6 +33,7 @@ export const mapSpacesToShapes = (spaces: Space[]): RoomShape[] => {
       loadedShapes.push({
         id: space.id,
         name: space.name,
+        description: space.description,
         is_active: space.is_active,
         capacity: space.capacity, // Map it
         type: space.type, // Map it
@@ -46,6 +47,7 @@ export const mapSpacesToShapes = (spaces: Space[]): RoomShape[] => {
       loadedShapes.push({
         id: space.id,
         name: space.name,
+        description: space.description,
         is_active: space.is_active,
         capacity: space.capacity, // Map it
         type: space.type, // Map it

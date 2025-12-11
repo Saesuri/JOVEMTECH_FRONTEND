@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,6 +43,7 @@ const FloorManagerModal: React.FC<FloorManagerModalProps> = ({
   onRename,
   onDelete,
 }) => {
+  const { t } = useTranslation();
   const [newFloorName, setNewFloorName] = useState("");
   const [renameValue, setRenameValue] = useState(currentFloorName);
 
@@ -59,14 +61,14 @@ const FloorManagerModal: React.FC<FloorManagerModalProps> = ({
   }, [isOpen, currentFloorName]);
 
   const handleCreate = async () => {
-    if (!newFloorName) return toast.error("Enter a name");
+    if (!newFloorName) return toast.error(t("floorManager.messages.enterName"));
     await onCreate(newFloorName);
     setNewFloorName("");
     onClose();
   };
 
   const handleRename = async () => {
-    if (!renameValue) return toast.error("Enter a name");
+    if (!renameValue) return toast.error(t("floorManager.messages.enterName"));
     await onRename(currentFloorId, renameValue);
     onClose();
   };
@@ -79,22 +81,23 @@ const FloorManagerModal: React.FC<FloorManagerModalProps> = ({
 
       if (stats.bookingCount > 0) {
         setAlertMessage(
-          `⚠️ WARNING: This floor contains ${stats.spaceCount} rooms and ${stats.bookingCount} ACTIVE BOOKINGS. Deleting it will cancel all these bookings immediately.`
+          t("floorManager.alert.warningWithBookings", {
+            rooms: stats.spaceCount,
+            bookings: stats.bookingCount,
+          })
         );
       } else if (stats.spaceCount > 0) {
         setAlertMessage(
-          `This floor contains ${stats.spaceCount} rooms. They will all be deleted.`
+          t("floorManager.alert.warningWithRooms", { rooms: stats.spaceCount })
         );
       } else {
-        setAlertMessage(
-          "This floor is empty. Are you sure you want to delete it?"
-        );
+        setAlertMessage(t("floorManager.alert.emptyFloor"));
       }
 
       setIsAlertOpen(true);
     } catch (error) {
-      console.error(error); 
-      toast.error("Failed to check floor stats");
+      console.error(error);
+      toast.error(t("floorManager.messages.statsFailed"));
     } finally {
       setStatsLoading(false);
     }
@@ -112,37 +115,41 @@ const FloorManagerModal: React.FC<FloorManagerModalProps> = ({
       <Dialog open={isOpen} onOpenChange={(o) => !o && onClose()}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Manage Floors</DialogTitle>
-            <DialogDescription>
-              Add new levels or manage the current one.
-            </DialogDescription>
+            <DialogTitle>{t("floorManager.title")}</DialogTitle>
+            <DialogDescription>{t("floorManager.subtitle")}</DialogDescription>
           </DialogHeader>
 
           <Tabs defaultValue="create" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="create">Create New</TabsTrigger>
-              <TabsTrigger value="edit">Edit Current</TabsTrigger>
+              <TabsTrigger value="create">
+                {t("floorManager.tabs.createNew")}
+              </TabsTrigger>
+              <TabsTrigger value="edit">
+                {t("floorManager.tabs.editCurrent")}
+              </TabsTrigger>
             </TabsList>
 
             {/* CREATE TAB */}
             <TabsContent value="create" className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label>New Floor Name</Label>
+                <Label>{t("floorManager.newFloorName")}</Label>
                 <Input
-                  placeholder="e.g., 2nd Floor, Rooftop"
+                  placeholder={t("floorManager.newFloorPlaceholder")}
                   value={newFloorName}
                   onChange={(e) => setNewFloorName(e.target.value)}
                 />
               </div>
               <Button onClick={handleCreate} className="w-full">
-                Create Floor
+                {t("floorManager.createFloor")}
               </Button>
             </TabsContent>
 
             {/* EDIT TAB */}
             <TabsContent value="edit" className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label>Rename "{currentFloorName}"</Label>
+                <Label>
+                  {t("floorManager.renameLabel", { name: currentFloorName })}
+                </Label>
                 <Input
                   value={renameValue}
                   onChange={(e) => setRenameValue(e.target.value)}
@@ -154,14 +161,16 @@ const FloorManagerModal: React.FC<FloorManagerModalProps> = ({
                   variant="outline"
                   className="flex-1"
                 >
-                  Rename
+                  {t("floorManager.rename")}
                 </Button>
                 <Button
                   onClick={initiateDelete}
                   variant="destructive"
                   disabled={statsLoading}
                 >
-                  {statsLoading ? "Checking..." : "Delete Floor"}
+                  {statsLoading
+                    ? t("floorManager.checking")
+                    : t("floorManager.deleteFloor")}
                 </Button>
               </div>
             </TabsContent>
@@ -174,22 +183,22 @@ const FloorManagerModal: React.FC<FloorManagerModalProps> = ({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="text-red-600">
-              Are you absolutely sure?
+              {t("floorManager.alert.title")}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-foreground">
               {alertMessage}
             </AlertDialogDescription>
             <div className="text-sm text-muted-foreground mt-2">
-              This action cannot be undone.
+              {t("floorManager.alert.cannotUndo")}
             </div>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
             >
-              Yes, Delete Everything
+              {t("floorManager.alert.confirmDelete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

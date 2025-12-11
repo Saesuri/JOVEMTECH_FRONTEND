@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { userService } from "../services/api";
@@ -17,7 +18,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Phone, Mail, Building2, Save } from "lucide-react";
+import { User, Phone, Mail, Building2, Save, KeyRound } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -178,6 +179,27 @@ const Profile = () => {
             <p className="text-xs text-muted-foreground">
               {t("profile.emailNote")}
             </p>
+          </div>
+
+          {/* Security Section */}
+          <div className="grid gap-2 pt-4 border-t">
+            <Label className="flex items-center gap-2">
+              <KeyRound className="h-4 w-4" /> {t("profile.security")}
+            </Label>
+            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border">
+              <div>
+                <p className="text-sm font-medium">{t("profile.password")}</p>
+                <p className="text-xs text-muted-foreground">
+                  {t("profile.passwordNote")}
+                </p>
+              </div>
+              <Link to="/change-password">
+                <Button variant="outline" size="sm" className="gap-2">
+                  <KeyRound className="h-4 w-4" />
+                  {t("profile.changePassword")}
+                </Button>
+              </Link>
+            </div>
           </div>
         </CardContent>
         <CardFooter className="flex justify-end border-t pt-6 bg-muted/20">

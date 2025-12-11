@@ -98,6 +98,10 @@ export const bookingService = {
     const response = await api.get("/admin/bookings");
     return response.data;
   },
+  getBySpace: async (spaceId: string): Promise<Booking[]> => {
+    const response = await api.get(`/bookings?space_id=${spaceId}`);
+    return response.data;
+  },
 };
 
 export const configService = {

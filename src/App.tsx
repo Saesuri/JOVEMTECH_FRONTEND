@@ -1,5 +1,10 @@
 import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+  Outlet,
+} from "react-router-dom";
 // Theme & UI
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
@@ -7,17 +12,19 @@ import { Navbar } from "./components/Navbar";
 
 // Pages
 import AdminEditor from "./pages/AdminEditor";
-import AdminBookings from "./pages/AdminBookings"; // <--- NEW IMPORT
+import AdminBookings from "./pages/AdminBookings";
 import UserBooking from "./pages/UserBooking";
 import MyBookings from "./pages/MyBookings";
 import Login from "./pages/Login";
+import AdminSettings from "./pages/AdminSettings";
+import Profile from "./pages/Profile";
+import ResetPassword from "./pages/ResetPassword";
+import ChangePassword from "./pages/ChangePassword";
 
 // Auth Logic
 import { AuthProvider } from "./context/AuthProvider";
 import { useAuth } from "./context/AuthContext";
 import { HelpBtn } from "./components/HelpBtn";
-import AdminSettings from "./pages/AdminSettings";
-import Profile from "./pages/Profile";
 
 /**
  * Wrapper to protect routes based on auth status and role
@@ -54,82 +61,107 @@ const ProtectedRoute = ({
   return children;
 };
 
+/**
+ * Main Layout Component
+ * Renders the persistent UI elements (Navbar, Helpers) and the page content
+ */
+const Layout = () => {
+  return (
+    <>
+      {/* Global Toaster for notifications */}
+      <Toaster position="top-right" richColors />
+
+      {/* Navigation Bar (visible on all pages if logged in) */}
+      <Navbar />
+
+      <main className="flex-1 bg-background">
+        <Outlet />
+      </main>
+
+      <HelpBtn />
+    </>
+  );
+};
+
+// Define Routes
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Layout />,
+    children: [
+      // Public Routes
+      { path: "login", element: <Login /> },
+      { path: "reset-password", element: <ResetPassword /> },
+      { path: "/", element: <Navigate to="/book" /> },
+
+      // Protected User Routes
+      {
+        path: "book",
+        element: (
+          <ProtectedRoute>
+            <UserBooking />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "my-bookings",
+        element: (
+          <ProtectedRoute>
+            <MyBookings />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "change-password",
+        element: (
+          <ProtectedRoute>
+            <ChangePassword />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "profile",
+        element: (
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        ),
+      },
+
+      // Protected Admin Routes
+      {
+        path: "admin",
+        element: (
+          <ProtectedRoute requireAdmin={true}>
+            <AdminEditor />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "admin/bookings",
+        element: (
+          <ProtectedRoute requireAdmin={true}>
+            <AdminBookings />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "admin/settings",
+        element: (
+          <ProtectedRoute requireAdmin={true}>
+            <AdminSettings />
+          </ProtectedRoute>
+        ),
+      },
+    ],
+  },
+]);
+
 function App() {
   return (
     <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
       <AuthProvider>
-        <BrowserRouter>
-          {/* Global Toaster for notifications */}
-          <Toaster position="top-right" richColors />
-
-          {/* Navigation Bar (visible on all pages if logged in) */}
-          <Navbar />
-
-          <main className="flex-1 bg-background">
-            <Routes>
-              {/* Public Route */}
-              <Route path="/login" element={<Login />} />
-              <Route
-                path="/profile" // <--- NEW ROUTE
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                }
-              />
-
-              {/* --- ADMIN ROUTES --- */}
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute requireAdmin={true}>
-                    <AdminEditor />
-                  </ProtectedRoute>
-                }
-              />
-
-              <Route
-                path="/admin/bookings"
-                element={
-                  <ProtectedRoute requireAdmin={true}>
-                    <AdminBookings />
-                  </ProtectedRoute>
-                }
-              />
-
-              {/* --- USER ROUTES --- */}
-              <Route
-                path="/book"
-                element={
-                  <ProtectedRoute>
-                    <UserBooking />
-                  </ProtectedRoute>
-                }
-              />
-
-              <Route
-                path="/my-bookings"
-                element={
-                  <ProtectedRoute>
-                    <MyBookings />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/settings"
-                element={
-                  <ProtectedRoute requireAdmin={true}>
-                    <AdminSettings />
-                  </ProtectedRoute>
-                }
-              />
-
-              {/* Default Redirect */}
-              <Route path="/" element={<Navigate to="/book" />} />
-            </Routes>
-            <HelpBtn />
-          </main>
-        </BrowserRouter>
+        <RouterProvider router={router} />
       </AuthProvider>
     </ThemeProvider>
   );

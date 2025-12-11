@@ -14,25 +14,27 @@ export interface PolygonCoordinates {
 
 export type RoomShape =
   | {
-    id: string;
-    name: string;
-    is_active?: boolean;
-    capacity?: number;
-    type?: string;
-    shapeType: "rect";
-    amenities?: string[];
-    data: RectCoordinates;
-  }
+      id: string;
+      name: string;
+      description?: string;
+      is_active?: boolean;
+      capacity?: number;
+      type?: string;
+      shapeType: "rect";
+      amenities?: string[];
+      data: RectCoordinates;
+    }
   | {
-    id: string;
-    name: string;
-    is_active?: boolean;
-    capacity?: number;
-    type?: string;
-    shapeType: "polygon";
-    amenities?: string[];
-    data: PolygonCoordinates;
-  };
+      id: string;
+      name: string;
+      description?: string;
+      is_active?: boolean;
+      capacity?: number;
+      type?: string;
+      shapeType: "polygon";
+      amenities?: string[];
+      data: PolygonCoordinates;
+    };
 
 // --- DATABASE ENTITIES ---
 
@@ -48,6 +50,7 @@ export interface Space {
   id: string;
   floor_id: string;
   name: string;
+  description?: string;
   type: string;
   capacity: number;
   coordinates: RectCoordinates | PolygonCoordinates | unknown;
@@ -128,6 +131,7 @@ export interface CreateSpaceDTO {
   id?: string;
   floor_id: string;
   name: string;
+  description?: string;
   type: string;
   capacity: number;
   amenities?: string[];

@@ -11,11 +11,13 @@ import {
 } from "../services/api";
 import { mapSpacesToShapes } from "../utils/mapHelpers";
 import { toLocalISOString, getTodayDateString } from "../utils/dateUtils";
+import { getRoomTypeKey, getAmenityById } from "../utils/roomUtils";
 import type { Floor, RoomShape, RoomType } from "../types/apiTypes";
 
 // Components
 import GridCanvas from "../components/MapEditor/GridCanvas";
 import BookingModal from "../components/Modals/BookingModal";
+import RoomCalendar from "../components/RoomCalendar";
 
 // Shadcn UI & Icons
 import {
@@ -35,7 +37,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Filter, Users, CalendarClock, Map } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Filter,
+  Users,
+  CalendarClock,
+  Map,
+  CheckCircle,
+  XCircle,
+  DoorOpen,
+  Calendar,
+  LayoutGrid,
+} from "lucide-react";
 
 function UserBooking() {
   const { t } = useTranslation();
@@ -60,6 +75,13 @@ function UserBooking() {
   // --- Modal State ---
   const [selectedRoom, setSelectedRoom] = useState<RoomShape | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // --- View Mode State ---
+  const [viewMode, setViewMode] = useState<"map" | "calendar">("map");
+  const [calendarRoom, setCalendarRoom] = useState<RoomShape | null>(null);
+  const [prefilledDate, setPrefilledDate] = useState<string>("");
+  const [prefilledStartTime, setPrefilledStartTime] = useState<string>("");
+  const [prefilledEndTime, setPrefilledEndTime] = useState<string>("");
 
   // Calculate canvas size from actual room positions (ensures all rooms fit)
   const canvasBounds = useMemo(() => {
@@ -93,6 +115,11 @@ function UserBooking() {
 
   const canvasWidth = canvasBounds.width;
   const canvasHeight = canvasBounds.height;
+
+  // Filter rooms for display in list (excluding dimmed ones)
+  const visibleRooms = useMemo(() => {
+    return rooms.filter((room) => !dimmedIds.includes(room.id));
+  }, [rooms, dimmedIds]);
 
   // 1. Load Initial Data
   useEffect(() => {
@@ -170,6 +197,13 @@ function UserBooking() {
   const handleRoomClick = (room: RoomShape) => {
     if (dimmedIds.includes(room.id)) return;
 
+    // In calendar mode, select room for calendar view
+    if (viewMode === "calendar") {
+      setCalendarRoom(room);
+      return;
+    }
+
+    // In map mode, open booking modal
     if (occupiedIds.includes(room.id)) {
       toast.warning(t("booking.messages.roomOccupied"));
       return;
@@ -184,9 +218,34 @@ function UserBooking() {
     setIsModalOpen(true);
   };
 
+  const handleCalendarSlotClick = (
+    dateStr: string,
+    startTime: string,
+    endTime: string
+  ) => {
+    if (!calendarRoom) return;
+
+    // Set prefilled values and open modal
+    setPrefilledDate(dateStr);
+    setPrefilledStartTime(startTime);
+    setPrefilledEndTime(endTime);
+    setSelectedRoom(calendarRoom);
+    setIsModalOpen(true);
+  };
+
   const handleModalClose = () => {
     setIsModalOpen(false);
+    setPrefilledDate("");
+    setPrefilledStartTime("");
+    setPrefilledEndTime("");
     setRefreshKey((prev) => prev + 1);
+  };
+
+  // Get room status for display
+  const getRoomStatus = (room: RoomShape) => {
+    if ((room as any).is_active === false) return "maintenance";
+    if (occupiedIds.includes(room.id)) return "occupied";
+    return "available";
   };
 
   return (
@@ -295,9 +354,9 @@ function UserBooking() {
                       <SelectItem value="all">
                         {t("booking.allTypes")}
                       </SelectItem>
-                      {roomTypes.map((t) => (
-                        <SelectItem key={t.id} value={t.value}>
-                          {t.label}
+                      {roomTypes.map((rt) => (
+                        <SelectItem key={rt.id} value={rt.value}>
+                          {rt.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -321,20 +380,200 @@ function UserBooking() {
         </CardContent>
       </Card>
 
-      {/* MAP AREA - Static, no zoom/pan */}
-      <div className="border rounded-xl bg-slate-50 dark:bg-slate-900/50 p-2 shadow-inner overflow-auto">
-        <div className="flex justify-center min-w-fit">
-          <GridCanvas
-            width={canvasWidth}
-            height={canvasHeight}
-            rectangles={rooms}
-            setRectangles={() => {}}
-            tool="select"
-            readOnly={true}
-            onRoomClick={handleRoomClick}
-            occupiedIds={occupiedIds}
-            dimmedIds={dimmedIds}
-          />
+      {/* View Mode Toggle - Between filters and content */}
+      <div className="flex items-center justify-end">
+        <div className="flex items-center gap-1 bg-muted p-1 rounded-md">
+          <Button
+            variant={viewMode === "map" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setViewMode("map")}
+            className="gap-2"
+          >
+            <LayoutGrid className="h-4 w-4" />
+            {t("booking.viewMode.map")}
+          </Button>
+          <Button
+            variant={viewMode === "calendar" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setViewMode("calendar")}
+            className="gap-2"
+          >
+            <Calendar className="h-4 w-4" />
+            {t("booking.viewMode.calendar")}
+          </Button>
+        </div>
+      </div>
+
+      {/* MAIN CONTENT - List + Grid/Calendar */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        {/* ROOM LIST - Left Side */}
+        <div className="lg:col-span-4 xl:col-span-3">
+          <Card className="h-full">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <DoorOpen className="h-4 w-4" />
+                {t("booking.roomList")}
+                <Badge variant="secondary" className="ml-auto">
+                  {visibleRooms.length}
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <Separator />
+            <ScrollArea className="h-[500px]">
+              <div className="p-3 space-y-2">
+                {visibleRooms.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground text-sm">
+                    {t("booking.noRoomsFound")}
+                  </div>
+                ) : (
+                  visibleRooms.map((room) => {
+                    const status = getRoomStatus(room);
+                    const isAvailable = status === "available";
+                    const isOccupied = status === "occupied";
+                    const isSelectedForCalendar =
+                      viewMode === "calendar" && calendarRoom?.id === room.id;
+
+                    return (
+                      <div
+                        key={room.id}
+                        onClick={() => handleRoomClick(room)}
+                        className={`
+                          p-3 rounded-lg border cursor-pointer transition-all
+                          ${
+                            isSelectedForCalendar
+                              ? "bg-primary/10 border-primary ring-2 ring-primary/30"
+                              : isAvailable
+                              ? "bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800 hover:border-green-400 hover:shadow-md"
+                              : isOccupied
+                              ? "bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800 opacity-75"
+                              : "bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 opacity-50"
+                          }
+                          ${
+                            viewMode === "calendar"
+                              ? ""
+                              : isOccupied || status === "maintenance"
+                              ? "cursor-not-allowed"
+                              : ""
+                          }
+                        `}
+                      >
+                        {/* Room Header */}
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-semibold text-sm truncate">
+                            {room.name}
+                          </span>
+                          {isAvailable ? (
+                            <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                          ) : (
+                            <XCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+                          )}
+                        </div>
+
+                        {/* Room Info */}
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <Users className="h-3 w-3" />
+                            <span>{room.capacity || 0}</span>
+                          </div>
+                          {room.type && (
+                            <Badge
+                              variant="outline"
+                              className="text-xs py-0 h-5"
+                            >
+                              {t(getRoomTypeKey(room.type))}
+                            </Badge>
+                          )}
+                        </div>
+
+                        {/* Amenities */}
+                        {room.amenities && room.amenities.length > 0 && (
+                          <div className="flex items-center gap-1 mt-2 flex-wrap">
+                            {room.amenities.slice(0, 3).map((amenityId) => {
+                              const amenity = getAmenityById(amenityId);
+                              if (!amenity) return null;
+                              const Icon = amenity.icon;
+                              return (
+                                <span
+                                  key={amenityId}
+                                  className="flex items-center gap-1 text-xs text-muted-foreground"
+                                >
+                                  {Icon && <Icon className="h-3 w-3" />}
+                                </span>
+                              );
+                            })}
+                            {room.amenities.length > 3 && (
+                              <span className="text-xs text-muted-foreground">
+                                +{room.amenities.length - 3}
+                              </span>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Status Label */}
+                        <div className="mt-2">
+                          {isAvailable ? (
+                            <span className="text-xs font-medium text-green-700 dark:text-green-400">
+                              {t("booking.clickToBook")}
+                            </span>
+                          ) : isOccupied ? (
+                            <span className="text-xs font-medium text-red-600 dark:text-red-400">
+                              {t("booking.legend.occupied")}
+                            </span>
+                          ) : (
+                            <span className="text-xs font-medium text-slate-500">
+                              {t("booking.maintenance")}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </ScrollArea>
+          </Card>
+        </div>
+
+        {/* RIGHT SIDE - Map or Calendar */}
+        <div className="lg:col-span-8 xl:col-span-9">
+          {viewMode === "map" ? (
+            <div className="border rounded-xl bg-slate-50 dark:bg-slate-900/50 p-2 shadow-inner overflow-x-auto">
+              <div className="flex justify-center min-w-fit">
+                <GridCanvas
+                  width={canvasWidth}
+                  height={canvasHeight}
+                  rectangles={rooms}
+                  setRectangles={() => {}}
+                  tool="select"
+                  readOnly={true}
+                  onRoomClick={handleRoomClick}
+                  occupiedIds={occupiedIds}
+                  dimmedIds={dimmedIds}
+                />
+              </div>
+            </div>
+          ) : (
+            <Card className="h-full p-4">
+              {calendarRoom ? (
+                <RoomCalendar
+                  room={calendarRoom}
+                  onSlotClick={handleCalendarSlotClick}
+                  onBookRoom={() => {
+                    setSelectedRoom(calendarRoom);
+                    setIsModalOpen(true);
+                  }}
+                />
+              ) : (
+                <div className="h-[500px] flex flex-col items-center justify-center text-muted-foreground">
+                  <Calendar className="h-12 w-12 mb-4 opacity-50" />
+                  <p className="text-lg font-medium">
+                    {t("calendar.selectRoom")}
+                  </p>
+                  <p className="text-sm">{t("calendar.selectRoomHint")}</p>
+                </div>
+              )}
+            </Card>
+          )}
         </div>
       </div>
 
@@ -342,6 +581,9 @@ function UserBooking() {
         room={selectedRoom}
         isOpen={isModalOpen}
         onClose={handleModalClose}
+        prefilledDate={prefilledDate}
+        prefilledStartTime={prefilledStartTime}
+        prefilledEndTime={prefilledEndTime}
       />
     </div>
   );

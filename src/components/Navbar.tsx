@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { ModeToggle } from "./mode-toggle";
@@ -28,14 +28,16 @@ export function Navbar() {
   const { t } = useTranslation();
   const { user, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = async () => {
     await signOut();
     navigate("/login");
   };
 
-  // If no user, we generally don't show the main nav (or show a simplified one)
-  if (!user) return null;
+  // Hide navbar on public auth pages (login, reset-password)
+  const hideNavbarPaths = ["/login", "/reset-password"];
+  if (!user || hideNavbarPaths.includes(location.pathname)) return null;
 
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">

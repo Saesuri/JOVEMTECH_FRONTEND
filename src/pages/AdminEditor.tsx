@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 // Components
@@ -41,11 +42,26 @@ import {
   Settings2,
   Plus,
   LayoutTemplate,
+  HelpCircle,
+  X,
 } from "lucide-react";
+import { useBlocker, useBeforeUnload } from "react-router-dom";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 function AdminEditor() {
+  const { t } = useTranslation();
   // --- STATE ---
   const [rooms, setRooms] = useState<RoomShape[]>([]);
+  const [isDirty, setIsDirty] = useState(false); // Track unsaved changes
   const [floors, setFloors] = useState<Floor[]>([]);
   const [selectedFloorId, setSelectedFloorId] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -62,6 +78,9 @@ function AdminEditor() {
   const [activeTool, setActiveTool] = useState<"select" | "rect" | "polygon">(
     "select"
   );
+
+  // Instructions panel visibility
+  const [showInstructions, setShowInstructions] = useState(true);
 
   // Helper to determine if we are in "Onboarding Mode"
   const showOnboarding = !loading && floors.length === 0;
@@ -80,7 +99,7 @@ function AdminEditor() {
         }
       } catch (error) {
         console.error("Error loading floors:", error);
-        toast.error("Falha ao carregar o pavimento");
+        toast.error(t("editor.messages.loadFailed"));
       } finally {
         setLoading(false);
       }
@@ -95,6 +114,7 @@ function AdminEditor() {
       try {
         const dbSpaces = await spaceService.getAll(selectedFloorId);
         setRooms(mapSpacesToShapes(dbSpaces));
+        setIsDirty(false); // Reset dirty on load
       } catch (error) {
         console.error("Error loading spaces:", error);
       }
@@ -104,7 +124,8 @@ function AdminEditor() {
 
   // --- HANDLERS ---
   const handleCreateFirstFloor = async () => {
-    if (!firstFloorName.trim()) return toast.error("Por favor, insira um nome");
+    if (!firstFloorName.trim())
+      return toast.error(t("editor.messages.enterName"));
     await handleCreateFloor(firstFloorName);
     setFirstFloorName("");
   };
@@ -118,10 +139,10 @@ function AdminEditor() {
       });
       setFloors((prev) => [...prev, newFloor]);
       setSelectedFloorId(newFloor.id);
-      toast.success("Pavimento criado com sucesso!");
+      toast.success(t("editor.messages.floorCreated"));
     } catch (e) {
       console.error(e);
-      toast.error("Falha ao criar o pavimento");
+      toast.error(t("editor.messages.floorCreateFailed"));
     }
   };
 
@@ -129,10 +150,10 @@ function AdminEditor() {
     try {
       await floorService.update(id, name);
       setFloors(floors.map((f) => (f.id === id ? { ...f, name } : f)));
-      toast.success("Pavimento renomeado com sucesso!");
+      toast.success(t("editor.messages.floorRenamed"));
     } catch (e) {
       console.error(e);
-      toast.error("Falha ao renomear o pavimento");
+      toast.error(t("editor.messages.floorRenameFailed"));
     }
   };
 
@@ -143,10 +164,10 @@ function AdminEditor() {
       setFloors(remaining);
       if (remaining.length > 0) setSelectedFloorId(remaining[0].id);
       else setSelectedFloorId("");
-      toast.success("Pavimento excluído com sucesso!");
+      toast.success(t("editor.messages.floorDeleted"));
     } catch (e) {
       console.error(e);
-      toast.error("Falha ao excluir o pavimento");
+      toast.error(t("editor.messages.floorDeleteFailed"));
     }
   };
 
@@ -161,6 +182,7 @@ function AdminEditor() {
     id: string,
     updates: {
       name: string;
+      description: string;
       capacity: number;
       type: string;
       amenities: string[];
@@ -171,13 +193,14 @@ function AdminEditor() {
       setRooms((prev) =>
         prev.map((r) => (r.id === id ? { ...r, ...updates } : r))
       );
-      toast.success("Espaço atualizado com sucesso!");
+      setIsDirty(true);
+      toast.success(t("editor.messages.spaceUpdated"));
     } catch (e) {
       console.error(e);
       setRooms((prev) =>
         prev.map((r) => (r.id === id ? { ...r, ...updates } : r))
       );
-      toast("Espaço atualizado localmente", { icon: "⚠️" });
+      toast(t("editor.messages.spaceUpdatedLocally"), { icon: "⚠️" });
     }
   };
 
@@ -185,17 +208,18 @@ function AdminEditor() {
     try {
       await spaceService.delete(id);
       setRooms((prev) => prev.filter((r) => r.id !== id));
-      toast.success("Espaço excluído com sucesso!");
+      setIsDirty(true);
+      toast.success(t("editor.messages.spaceDeleted"));
     } catch (e) {
       console.error(e);
       setRooms((prev) => prev.filter((r) => r.id !== id));
-      toast.info("Espaço excluído localmente", { icon: "⚠️" });
+      toast.info(t("editor.messages.spaceDeletedLocally"), { icon: "⚠️" });
     }
   };
 
   const handleSave = async () => {
     if (!selectedFloorId) {
-      toast.error("Nenhum pavimento selecionado");
+      toast.error(t("editor.messages.noFloorSelected"));
       return;
     }
 
@@ -206,6 +230,7 @@ function AdminEditor() {
           id: room.id,
           floor_id: selectedFloorId,
           name: room.name,
+          description: room.description || "",
           type: room.type || "meeting_room",
           capacity: room.capacity || 10,
           amenities: room.amenities || [],
@@ -219,14 +244,33 @@ function AdminEditor() {
       // Refresh to ensure everything is synced
       const dbSpaces = await spaceService.getAll(selectedFloorId);
       setRooms(mapSpacesToShapes(dbSpaces));
+      setIsDirty(false);
     })();
 
     toast.promise(promise, {
-      loading: "Salvando layout...",
-      success: "Layout salvo com sucesso!",
-      error: "Falha ao salvar o layout",
+      loading: t("editor.messages.savingLayout"),
+      success: t("editor.messages.layoutSaved"),
+      error: t("editor.messages.layoutSaveFailed"),
     });
   };
+
+  // --- NAVIGATION BLOCKING ---
+  useBeforeUnload(
+    useCallback(
+      (e) => {
+        if (isDirty) {
+          e.preventDefault();
+          e.returnValue = "";
+        }
+      },
+      [isDirty]
+    )
+  );
+
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      isDirty && currentLocation.pathname !== nextLocation.pathname
+  );
 
   if (loading) {
     return (
@@ -255,18 +299,17 @@ function AdminEditor() {
                 <LayoutTemplate className="h-10 w-10 text-primary" />
               </div>
               <CardTitle className="text-2xl">
-                Bem-vindo ao Editor de Mapa
+                {t("editor.onboarding.title")}
               </CardTitle>
               <CardDescription>
-                Seu espaço de trabalho está vazio. Crie a planta do primeiro
-                pavimento para desbloquear as ferramentas.
+                {t("editor.onboarding.subtitle")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Nome do Primeiro Pavimento</Label>
+                <Label>{t("editor.onboarding.firstFloorLabel")}</Label>
                 <Input
-                  placeholder="e.g. Ground Floor"
+                  placeholder={t("editor.onboarding.floorPlaceholder")}
                   value={firstFloorName}
                   onChange={(e) => setFirstFloorName(e.target.value)}
                   onKeyDown={(e) =>
@@ -283,7 +326,7 @@ function AdminEditor() {
                 size="lg"
               >
                 <Plus className="h-4 w-4" />
-                Criar Primeiro Pavimento
+                {t("editor.onboarding.createButton")}
               </Button>
             </CardFooter>
           </Card>
@@ -309,20 +352,18 @@ function AdminEditor() {
               <div className="flex items-center gap-2">
                 <Layers className="h-6 w-6 text-primary" />
                 <div>
-                  <CardTitle>Editor de Pavimentos</CardTitle>
-                  <CardDescription>
-                    Planeje o layout do seu espaço.
-                  </CardDescription>
+                  <CardTitle>{t("editor.title")}</CardTitle>
+                  <CardDescription>{t("editor.subtitle")}</CardDescription>
                 </div>
               </div>
 
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="text-muted-foreground">
-                  {rooms.length} Salas
+                  {rooms.length} {t("editor.rooms")}
                 </Badge>
                 <Button onClick={handleSave} className="gap-2">
                   <Save className="h-4 w-4" />
-                  Salvar Layout
+                  {t("editor.saveLayout")}
                 </Button>
               </div>
             </div>
@@ -335,7 +376,7 @@ function AdminEditor() {
               {/* Left: Floor Selector + Settings */}
               <div className="w-full md:w-[300px] space-y-2">
                 <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Pavimento Ativo
+                  {t("editor.activeFloor")}
                 </label>
 
                 <div className="flex gap-2">
@@ -377,7 +418,7 @@ function AdminEditor() {
                   className="gap-2"
                 >
                   <MousePointer2 className="h-4 w-4" />
-                  Selecionar
+                  {t("editor.tools.select")}
                 </Button>
                 <Button
                   variant={activeTool === "rect" ? "default" : "ghost"}
@@ -386,7 +427,7 @@ function AdminEditor() {
                   className="gap-2"
                 >
                   <Square className="h-4 w-4" />
-                  Retângulo
+                  {t("editor.tools.rectangle")}
                 </Button>
                 <Button
                   variant={activeTool === "polygon" ? "default" : "ghost"}
@@ -395,7 +436,7 @@ function AdminEditor() {
                   className="gap-2"
                 >
                   <Hexagon className="h-4 w-4" />
-                  Polígono
+                  {t("editor.tools.polygon")}
                 </Button>
               </div>
             </div>
@@ -409,28 +450,51 @@ function AdminEditor() {
             height={600}
             snapSize={20}
             rectangles={rooms}
-            setRectangles={setRooms}
+            setRectangles={(newVal) => {
+              setRooms(newVal);
+              setIsDirty(true);
+            }}
             tool={activeTool}
             readOnly={false}
             onRoomClick={handleRoomClick}
           />
 
-          <div className="absolute bottom-4 left-4 bg-background/80 backdrop-blur p-3 rounded-md border text-xs text-muted-foreground shadow-sm">
-            <strong>Instructions:</strong>
-            <ul className="list-disc list-inside mt-1 space-y-1">
-              <li>
-                <strong>Selecionar:</strong> Clique na sala para editar/excluir.
-                Arraste para mover.
-              </li>
-              <li>
-                <strong>Retângulo:</strong> Arraste para desenhar.
-              </li>
-              <li>
-                <strong>Polígono:</strong> Clique nos pontos indicados e clique
-                duas vezes para fechar.
-              </li>
-            </ul>
-          </div>
+          {/* Toggleable Instructions Panel */}
+          {showInstructions ? (
+            <div
+              onClick={() => setShowInstructions(false)}
+              className="absolute bottom-4 left-4 bg-background/90 backdrop-blur p-3 rounded-md border text-xs text-muted-foreground shadow-sm cursor-pointer hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <strong>{t("editor.instructions.title")}</strong>
+                <span className="p-1 hover:bg-muted rounded-sm transition-colors">
+                  <X className="h-3 w-3" />
+                </span>
+              </div>
+              <ul className="list-disc list-inside space-y-1">
+                <li>
+                  <strong>{t("editor.tools.select")}:</strong>{" "}
+                  {t("editor.instructions.selectDesc")}
+                </li>
+                <li>
+                  <strong>{t("editor.tools.rectangle")}:</strong>{" "}
+                  {t("editor.instructions.rectDesc")}
+                </li>
+                <li>
+                  <strong>{t("editor.tools.polygon")}:</strong>{" "}
+                  {t("editor.instructions.polygonDesc")}
+                </li>
+              </ul>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowInstructions(true)}
+              className="absolute bottom-4 left-4 p-2 bg-background/90 backdrop-blur rounded-md border shadow-sm hover:bg-muted transition-colors"
+              title={t("editor.instructions.show")}
+            >
+              <HelpCircle className="h-5 w-5 text-muted-foreground" />
+            </button>
+          )}
         </div>
 
         {/* MODALS */}
@@ -454,6 +518,31 @@ function AdminEditor() {
           onRename={handleRenameFloor}
           onDelete={handleDeleteFloor}
         />
+
+        {/* Unsaved Changes Alert */}
+        <AlertDialog open={blocker.state === "blocked"}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {t("editor.messages.unsavedChangesTitle", "Unsaved Changes")}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {t(
+                  "editor.messages.unsavedChangesDesc",
+                  "You have unsaved changes. Are you sure you want to leave? Your changes will be lost."
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => blocker.reset?.()}>
+                {t("common.cancel", "Cancel")}
+              </AlertDialogCancel>
+              <AlertDialogAction onClick={() => blocker.proceed?.()}>
+                {t("common.leave", "Leave")}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

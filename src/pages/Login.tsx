@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "../config/supabaseClient";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { userService } from "../services/api";
 import { toast } from "sonner";
 
@@ -205,10 +205,17 @@ const Login: React.FC = () => {
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex justify-center">
+        <CardFooter className="flex flex-col gap-2">
           <Button variant="link" onClick={() => setIsSignUp(!isSignUp)}>
             {isSignUp ? t("login.switchToLogin") : t("login.switchToSignup")}
           </Button>
+          {!isSignUp && (
+            <Link to="/reset-password">
+              <Button variant="link" className="text-muted-foreground text-sm">
+                {t("login.forgotPassword")}
+              </Button>
+            </Link>
+          )}
         </CardFooter>
       </Card>
     </div>

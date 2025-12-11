@@ -49,6 +49,7 @@
     "submitSignup": "Create Account",
     "switchToSignup": "Need to create an account? Sign Up",
     "switchToLogin": "Already have an account? Sign In",
+    "forgotPassword": "Forgot your password?",
     "departments": {
       "faculty": "Faculty (Professors)",
       "it": "IT Support",
@@ -82,10 +83,44 @@
       "filtered": "Filtered"
     },
     "mapControls": "Scroll to zoom • Drag to pan",
+    "roomList": "Available Rooms",
+    "noRoomsFound": "No rooms match your filters.",
+    "clickToBook": "Click to book",
+    "maintenance": "Under maintenance",
     "messages": {
       "roomOccupied": "This room is occupied during the selected time.",
       "roomMaintenance": "Room under maintenance.",
       "configLoadFailed": "Failed to load configuration"
+    },
+    "viewMode": {
+      "map": "Map",
+      "calendar": "Calendar"
+    }
+  },
+  "calendar": {
+    "today": "Today",
+    "booked": "Booked",
+    "available": "Available",
+    "past": "Past",
+    "selectRoom": "Select a Room",
+    "selectRoomHint": "Choose a room from the list to view its weekly schedule.",
+    "bookRoom": "Book Room"
+  },
+  "bookingModal": {
+    "title": "Book {{name}}",
+    "subtitle": "Confirm the date and time for your reservation.",
+    "scheduleTitle": "Schedule",
+    "roomDetails": "Room Details",
+    "people": "people",
+    "amenities": "Amenities",
+    "confirm": "Confirm Booking",
+    "messages": {
+      "loginRequired": "You must be logged in to book.",
+      "fillAllFields": "Please fill in all fields.",
+      "checking": "Checking availability...",
+      "confirmed": "Booking Confirmed! ✅",
+      "conflict": "Conflict: Time slot already booked ❌",
+      "failed": "Failed to book ❌"
     }
   },
   "myBookings": {
@@ -115,6 +150,10 @@
     "department": "Department",
     "email": "Email Address",
     "emailNote": "Email cannot be changed.",
+    "security": "Security",
+    "password": "Password",
+    "passwordNote": "Keep your account secure with a strong password.",
+    "changePassword": "Change Password",
     "saveChanges": "Save Changes",
     "saving": "Saving...",
     "departments": {
@@ -158,6 +197,32 @@
       "exportStarted": "Export Started"
     }
   },
+  "roomEdit": {
+    "title": "Edit Room",
+    "subtitle": "Modify {{name}}",
+    "name": "Name",
+    "capacity": "Capacity",
+    "description": "Description",
+    "descriptionPlaceholder": "Brief description of the room...",
+    "type": "Type",
+    "amenitiesLabel": "Amenities & Equipment",
+    "confirmDelete": "Delete \"{{name}}\"?",
+    "types": {
+      "meetingRoom": "Meeting Room",
+      "lab": "Computer Lab",
+      "auditorium": "Auditorium",
+      "office": "Shared Office"
+    },
+    "amenities": {
+      "wifi": "Wi-Fi Dedicated",
+      "tv": "TV / Monitor",
+      "projector": "Projector",
+      "whiteboard": "Whiteboard",
+      "videoConf": "Video Conf",
+      "ac": "Air Conditioning",
+      "mic": "Microphone/Audio"
+    }
+  },
   "stats": {
     "totalBookings": "Total Bookings",
     "totalBookingsDesc": "All-time reservations",
@@ -176,5 +241,115 @@
     "switch": "Language",
     "en": "English",
     "ptBR": "Português (BR)"
+  },
+  "resetPassword": {
+    "title": "Reset Password",
+    "subtitle": "Enter your email to receive a password reset link.",
+    "submit": "Send Reset Link",
+    "backToLogin": "Back to Login",
+    "emailSentTitle": "Check Your Email",
+    "emailSentSubtitle": "We've sent you a password reset link.",
+    "checkInbox": "Please check your inbox and click the link to reset your password.",
+    "newPasswordTitle": "Create New Password",
+    "newPasswordSubtitle": "Enter your new password below.",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "updatePassword": "Update Password",
+    "messages": {
+      "emailSent": "Password reset link sent to your email",
+      "requestFailed": "Failed to send reset link",
+      "passwordMismatch": "Passwords do not match",
+      "passwordTooShort": "Password must be at least 6 characters",
+      "passwordUpdated": "Password updated successfully! Please login with your new password.",
+      "updateFailed": "Failed to update password"
+    }
+  },
+  "changePassword": {
+    "title": "Change Password",
+    "subtitle": "Update your account password.",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm New Password",
+    "passwordRequirement": "Password must be at least 6 characters long.",
+    "submit": "Update Password",
+    "messages": {
+      "success": "Password changed successfully!",
+      "failed": "Failed to change password",
+      "passwordMismatch": "New passwords do not match",
+      "passwordTooShort": "Password must be at least 6 characters",
+      "samePassword": "New password must be different from current password",
+      "currentPasswordWrong": "Current password is incorrect"
+    }
+  },
+  "floorManager": {
+    "title": "Manage Floors",
+    "subtitle": "Add new levels or manage the current one.",
+    "tabs": {
+      "createNew": "Create New",
+      "editCurrent": "Edit Current"
+    },
+    "newFloorName": "New Floor Name",
+    "newFloorPlaceholder": "e.g., 2nd Floor, Rooftop",
+    "createFloor": "Create Floor",
+    "renameLabel": "Rename \"{{name}}\"",
+    "rename": "Rename",
+    "deleteFloor": "Delete Floor",
+    "checking": "Checking...",
+    "messages": {
+      "enterName": "Enter a name",
+      "statsFailed": "Failed to check floor stats"
+    },
+    "alert": {
+      "title": "Are you absolutely sure?",
+      "warningWithBookings": "⚠️ WARNING: This floor contains {{rooms}} rooms and {{bookings}} ACTIVE BOOKINGS. Deleting it will cancel all these bookings immediately.",
+      "warningWithRooms": "This floor contains {{rooms}} rooms. They will all be deleted.",
+      "emptyFloor": "This floor is empty. Are you sure you want to delete it?",
+      "cannotUndo": "This action cannot be undone.",
+      "confirmDelete": "Yes, Delete Everything"
+    }
+  },
+  "editor": {
+    "title": "Floor Editor",
+    "subtitle": "Plan your space layout.",
+    "rooms": "Rooms",
+    "saveLayout": "Save Layout",
+    "activeFloor": "Active Floor",
+    "tools": {
+      "select": "Select",
+      "rectangle": "Rectangle",
+      "polygon": "Polygon"
+    },
+    "onboarding": {
+      "title": "Welcome to the Map Editor",
+      "subtitle": "Your workspace is empty. Create the first floor plan to unlock the tools.",
+      "firstFloorLabel": "First Floor Name",
+      "floorPlaceholder": "e.g. Ground Floor",
+      "createButton": "Create First Floor"
+    },
+    "instructions": {
+      "title": "Instructions:",
+      "show": "Show Instructions",
+      "selectDesc": "Click room to edit/delete. Drag to move.",
+      "rectDesc": "Drag to draw.",
+      "polygonDesc": "Click points to draw, double-click to close."
+    },
+    "messages": {
+      "loadFailed": "Failed to load floor",
+      "enterName": "Please enter a name",
+      "floorCreated": "Floor created successfully!",
+      "floorCreateFailed": "Failed to create floor",
+      "floorRenamed": "Floor renamed successfully!",
+      "floorRenameFailed": "Failed to rename floor",
+      "floorDeleted": "Floor deleted successfully!",
+      "floorDeleteFailed": "Failed to delete floor",
+      "spaceUpdated": "Space updated successfully!",
+      "spaceUpdatedLocally": "Space updated locally",
+      "spaceDeleted": "Space deleted successfully!",
+      "spaceDeletedLocally": "Space deleted locally",
+      "noFloorSelected": "No floor selected",
+      "savingLayout": "Saving layout...",
+      "layoutSaved": "Layout saved successfully!",
+      "layoutSaveFailed": "Failed to save layout"
+    }
   }
 }
