@@ -161,12 +161,15 @@ const router = createBrowserRouter([
 function App() {
   return (
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
       <AuthProvider>
         <RouterProvider router={router} />
       </AuthProvider>
     </ThemeProvider>
 =======
+=======
+>>>>>>> Stashed changes
     <ErrorBoundary>
       <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
         <AuthProvider>
@@ -245,6 +248,9 @@ function App() {
         </AuthProvider>
       </ThemeProvider>
     </ErrorBoundary>
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
   );
 }
