@@ -11,16 +11,15 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  // esbuild options (top-level, not inside build)
+  esbuild: {
+    drop: ["console", "debugger"], // Remove console.logs in production
+  },
   build: {
     // Generate source maps for production debugging
     sourcemap: true,
     // Increase chunk size warning limit (KB)
     chunkSizeWarningLimit: 1000,
-    // Use esbuild for minification (default in Vite 7, faster than terser)
-    minify: "esbuild",
-    esbuild: {
-      drop: ["console", "debugger"], // Remove console.logs in production
-    },
     // Code splitting configuration
     rollupOptions: {
       output: {
