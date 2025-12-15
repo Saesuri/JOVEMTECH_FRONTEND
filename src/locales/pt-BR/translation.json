@@ -64,12 +64,6 @@
       "profileSaveFailed": "Conta criada, mas falha ao salvar o perfil.",
       "checkEmail": "Cheque seu email para confirmar o cadastro.",
       "welcome": "Bem-vindo"
-    },
-    "demoMode": "Modo Demo",
-    "demoModeHint": "Escolha admin para testar todas as funcionalidades",
-    "roles": {
-      "user": "Usuário Regular",
-      "admin": "Administrador"
     }
   },
   "booking": {

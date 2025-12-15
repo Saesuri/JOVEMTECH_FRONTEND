@@ -38,7 +38,6 @@ const Login: React.FC = () => {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [department, setDepartment] = useState("Faculty");
-  const [role, setRole] = useState<"user" | "admin">("user"); // Demo mode: user or admin
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,7 +71,7 @@ const Login: React.FC = () => {
               full_name: fullName,
               phone,
               department,
-              role, // Demo mode: save selected role
+
             });
             toast.success(t("login.messages.accountCreated"));
             navigate("/book");
@@ -172,35 +171,6 @@ const Login: React.FC = () => {
                       </SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-
-                {/* Demo Mode: Role Toggle */}
-                <div className="space-y-1 p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
-                  <Label className="text-amber-700 dark:text-amber-400 text-xs font-semibold">
-                    {t("login.demoMode", "Demo Mode")}
-                  </Label>
-                  <Select
-                    value={role}
-                    onValueChange={(v) => setRole(v as "user" | "admin")}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="user">
-                        {t("login.roles.user", "Usuário Regular")}
-                      </SelectItem>
-                      <SelectItem value="admin">
-                        {t("login.roles.admin", "Administrador")}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-amber-600 dark:text-amber-500">
-                    {t(
-                      "login.demoModeHint",
-                      "Escolha admin para testar todas as funcionalidades"
-                    )}
-                  </p>
                 </div>
               </div>
             )}

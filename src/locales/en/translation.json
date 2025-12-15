@@ -64,12 +64,6 @@
       "profileSaveFailed": "Account created, but failed to save profile.",
       "checkEmail": "Check your email to confirm registration.",
       "welcome": "Welcome"
-    },
-    "demoMode": "Demo Mode",
-    "demoModeHint": "Choose admin to test all features",
-    "roles": {
-      "user": "Regular User",
-      "admin": "Administrator"
     }
   },
   "booking": {
