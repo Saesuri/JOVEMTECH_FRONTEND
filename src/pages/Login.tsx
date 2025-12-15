@@ -38,6 +38,7 @@ const Login: React.FC = () => {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [department, setDepartment] = useState("Faculty");
+  const [role, setRole] = useState<"user" | "admin">("user"); // Demo mode: user or admin
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,6 +72,7 @@ const Login: React.FC = () => {
               full_name: fullName,
               phone,
               department,
+              role, // Demo mode: save selected role
             });
             toast.success(t("login.messages.accountCreated"));
             navigate("/book");
@@ -133,44 +135,72 @@ const Login: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <Label>{t("login.phone")}</Label>
-                    <div className="relative">
-                      <Phone className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="(11) 99999-9999"
-                        className="pl-8"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                      />
-                    </div>
+                <div className="space-y-1">
+                  <Label>{t("login.phone")}</Label>
+                  <div className="relative">
+                    <Phone className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="(11) 99999-9999"
+                      className="pl-8"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                    />
                   </div>
-                  <div className="space-y-1">
-                    <Label>{t("login.department")}</Label>
-                    <Select value={department} onValueChange={setDepartment}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Faculty">
-                          {t("login.departments.faculty")}
-                        </SelectItem>
-                        <SelectItem value="IT">
-                          {t("login.departments.it")}
-                        </SelectItem>
-                        <SelectItem value="Admin">
-                          {t("login.departments.admin")}
-                        </SelectItem>
-                        <SelectItem value="HR">
-                          {t("login.departments.hr")}
-                        </SelectItem>
-                        <SelectItem value="Student">
-                          {t("login.departments.student")}
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <Label>{t("login.department")}</Label>
+                  <Select value={department} onValueChange={setDepartment}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Faculty">
+                        {t("login.departments.faculty")}
+                      </SelectItem>
+                      <SelectItem value="IT">
+                        {t("login.departments.it")}
+                      </SelectItem>
+                      <SelectItem value="Admin">
+                        {t("login.departments.admin")}
+                      </SelectItem>
+                      <SelectItem value="HR">
+                        {t("login.departments.hr")}
+                      </SelectItem>
+                      <SelectItem value="Student">
+                        {t("login.departments.student")}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Demo Mode: Role Toggle */}
+                <div className="space-y-1 p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
+                  <Label className="text-amber-700 dark:text-amber-400 text-xs font-semibold">
+                    🎯 {t("login.demoMode", "Demo Mode")}
+                  </Label>
+                  <Select
+                    value={role}
+                    onValueChange={(v) => setRole(v as "user" | "admin")}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="user">
+                        👤 {t("login.roles.user", "Usuário Regular")}
+                      </SelectItem>
+                      <SelectItem value="admin">
+                        🔧 {t("login.roles.admin", "Administrador")}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-amber-600 dark:text-amber-500">
+                    {t(
+                      "login.demoModeHint",
+                      "Escolha admin para testar todas as funcionalidades"
+                    )}
+                  </p>
                 </div>
               </div>
             )}
