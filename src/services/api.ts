@@ -16,7 +16,10 @@ import type {
 } from "../types/apiTypes";
 
 // --- AXIOS INSTANCE ---
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_URL = import.meta.env.VITE_API_URL;
+if (!API_URL) {
+  throw new Error("VITE_API_URL environment variable is not configured");
+}
 
 const api = axios.create({
   baseURL: API_URL,

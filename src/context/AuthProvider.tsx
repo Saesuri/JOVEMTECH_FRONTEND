@@ -67,8 +67,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (error) throw error;
       setIsAdmin(data?.role === "admin");
-    } catch (error) {
-      console.error("Error fetching role:", error);
+    } catch {
       setIsAdmin(false);
     } finally {
       setLoading(false);
