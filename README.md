@@ -8,6 +8,8 @@ Sistema completo para gerenciamento de reservas de espaços para eventos, salas 
 ![Supabase](https://img.shields.io/badge/Supabase-Backend-3ECF8E?logo=supabase)
 
 ---
+ **[Acesse a aplicação ao vivo](https://jovemtech-frontend.vercel.app/)**
+---
 
 ## 📋 Índice
 
