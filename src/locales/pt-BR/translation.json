@@ -9,6 +9,7 @@
     "search": "Buscar",
     "export": "Exportar",
     "processing": "Processando...",
+    "leave": "Sair",
     "status": {
       "active": "Ativo",
       "completed": "Concluído",
@@ -63,6 +64,12 @@
       "profileSaveFailed": "Conta criada, mas falha ao salvar o perfil.",
       "checkEmail": "Cheque seu email para confirmar o cadastro.",
       "welcome": "Bem-vindo"
+    },
+    "demoMode": "Modo Demo",
+    "demoModeHint": "Escolha admin para testar todas as funcionalidades",
+    "roles": {
+      "user": "Usuário Regular",
+      "admin": "Administrador"
     }
   },
   "booking": {
@@ -206,7 +213,8 @@
     "descriptionPlaceholder": "Breve descrição da sala...",
     "type": "Tipo",
     "amenitiesLabel": "Comodidades e Equipamentos",
-    "confirmDelete": "Excluir \"{{name}}\"?",
+    "deleteTitle": "Excluir Espaço",
+    "confirmDelete": "Tem certeza que deseja excluir \"{{name}}\"? Esta ação não pode ser desfeita.",
     "types": {
       "meetingRoom": "Sala de Reunião",
       "lab": "Laboratório de Informática",
@@ -349,7 +357,9 @@
       "noFloorSelected": "Nenhum pavimento selecionado",
       "savingLayout": "Salvando layout...",
       "layoutSaved": "Layout salvo com sucesso!",
-      "layoutSaveFailed": "Falha ao salvar layout"
+      "layoutSaveFailed": "Falha ao salvar layout",
+      "unsavedChangesTitle": "Alterações Não Salvas",
+      "unsavedChangesDesc": "Você tem alterações não salvas. Tem certeza que deseja sair? Suas alterações serão perdidas."
     }
   }
 }

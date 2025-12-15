@@ -9,6 +9,7 @@
     "search": "Search",
     "export": "Export",
     "processing": "Processing...",
+    "leave": "Leave",
     "status": {
       "active": "Active",
       "completed": "Completed",
@@ -63,6 +64,12 @@
       "profileSaveFailed": "Account created, but failed to save profile.",
       "checkEmail": "Check your email to confirm registration.",
       "welcome": "Welcome"
+    },
+    "demoMode": "Demo Mode",
+    "demoModeHint": "Choose admin to test all features",
+    "roles": {
+      "user": "Regular User",
+      "admin": "Administrator"
     }
   },
   "booking": {
@@ -206,7 +213,8 @@
     "descriptionPlaceholder": "Brief description of the room...",
     "type": "Type",
     "amenitiesLabel": "Amenities & Equipment",
-    "confirmDelete": "Delete \"{{name}}\"?",
+    "deleteTitle": "Delete Space",
+    "confirmDelete": "Are you sure you want to delete \"{{name}}\"? This cannot be undone.",
     "types": {
       "meetingRoom": "Meeting Room",
       "lab": "Computer Lab",
@@ -349,7 +357,9 @@
       "noFloorSelected": "No floor selected",
       "savingLayout": "Saving layout...",
       "layoutSaved": "Layout saved successfully!",
-      "layoutSaveFailed": "Failed to save layout"
+      "layoutSaveFailed": "Failed to save layout",
+      "unsavedChangesTitle": "Unsaved Changes",
+      "unsavedChangesDesc": "You have unsaved changes. Are you sure you want to leave? Your changes will be lost."
     }
   }
 }

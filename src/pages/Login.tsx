@@ -177,7 +177,7 @@ const Login: React.FC = () => {
                 {/* Demo Mode: Role Toggle */}
                 <div className="space-y-1 p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
                   <Label className="text-amber-700 dark:text-amber-400 text-xs font-semibold">
-                    🎯 {t("login.demoMode", "Demo Mode")}
+                    {t("login.demoMode", "Demo Mode")}
                   </Label>
                   <Select
                     value={role}
@@ -188,10 +188,10 @@ const Login: React.FC = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="user">
-                        👤 {t("login.roles.user", "Usuário Regular")}
+                        {t("login.roles.user", "Usuário Regular")}
                       </SelectItem>
                       <SelectItem value="admin">
-                        🔧 {t("login.roles.admin", "Administrador")}
+                        {t("login.roles.admin", "Administrador")}
                       </SelectItem>
                     </SelectContent>
                   </Select>
