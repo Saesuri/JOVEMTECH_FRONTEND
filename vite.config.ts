@@ -1,7 +1,7 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import path from "path"
-import tailwindcss from "@tailwindcss/vite"
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import path from "path";
+import tailwindcss from "@tailwindcss/vite";
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -16,32 +16,29 @@ export default defineConfig({
     sourcemap: true,
     // Increase chunk size warning limit (KB)
     chunkSizeWarningLimit: 1000,
-    // Minification settings
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true, // Remove console.logs in production
-        drop_debugger: true,
-      },
+    // Use esbuild for minification (default in Vite 7, faster than terser)
+    minify: "esbuild",
+    esbuild: {
+      drop: ["console", "debugger"], // Remove console.logs in production
     },
     // Code splitting configuration
     rollupOptions: {
       output: {
         manualChunks: {
           // Vendor chunk for React ecosystem
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          "vendor-react": ["react", "react-dom", "react-router-dom"],
           // UI components chunk
-          'vendor-ui': [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-select',
-            'lucide-react',
+          "vendor-ui": [
+            "@radix-ui/react-dialog",
+            "@radix-ui/react-dropdown-menu",
+            "@radix-ui/react-tabs",
+            "@radix-ui/react-select",
+            "lucide-react",
           ],
           // Canvas/visualization chunk
-          'vendor-canvas': ['konva', 'react-konva', 'recharts'],
+          "vendor-canvas": ["konva", "react-konva", "recharts"],
           // Utilities chunk
-          'vendor-utils': ['date-fns', 'axios', 'clsx'],
+          "vendor-utils": ["date-fns", "axios", "clsx"],
         },
       },
     },
@@ -51,4 +48,4 @@ export default defineConfig({
     port: 4173,
     strictPort: true,
   },
-})
+});
