@@ -1,6 +1,7 @@
 import { formatDate, formatTime, formatDateTime } from "./formatters";
 import { formatForICS } from "./dateUtils";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const downloadCSV = (data: any[], filename: string) => {
   if (!data || data.length === 0) {
     return;
@@ -22,7 +23,6 @@ export const downloadCSV = (data: any[], filename: string) => {
     row.profiles?.email || "Deleted User",
     row.spaces?.name || "Unknown Room",
     row.spaces?.type || "Unknown Type",
-    // Use the dynamic formatters here
     formatDate(row.start_time),
     formatTime(row.start_time),
     formatTime(row.end_time),
@@ -31,6 +31,7 @@ export const downloadCSV = (data: any[], filename: string) => {
 
   const csvContent = [
     headers.join(","),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...rows.map((e) => e.map((val: any) => `"${val}"`).join(",")),
   ].join("\n");
 

@@ -105,7 +105,7 @@ function AdminEditor() {
       }
     };
     initFloors();
-  }, []);
+  }, [t]);
 
   // --- 2. LOAD SPACES ---
   useEffect(() => {

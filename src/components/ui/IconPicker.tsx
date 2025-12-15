@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import * as LucideIcons from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,14 +11,18 @@ import {
 import { Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+type IconsRecord = Record<string, LucideIcon>;
+
 // Get all icon names from lucide-react (excluding utility exports)
+const iconsRecord = LucideIcons as unknown as IconsRecord;
+
 const allIconNames = Object.keys(LucideIcons).filter(
   (key) =>
     key !== "createLucideIcon" &&
     key !== "default" &&
     key !== "icons" &&
-    typeof (LucideIcons as any)[key] === "function" &&
-    key[0] === key[0].toUpperCase() // Only PascalCase (actual icons)
+    typeof iconsRecord[key] === "function" &&
+    key[0] === key[0].toUpperCase()
 );
 
 interface IconPickerProps {
@@ -65,8 +70,7 @@ export function IconPicker({
       .slice(0, 48); // Limit for performance
   }, [search]);
 
-  // Get the currently selected icon component
-  const SelectedIcon = value ? (LucideIcons as any)[value] : null;
+  const SelectedIcon = value ? iconsRecord[value] : null;
 
   const handleSelect = (iconName: string) => {
     onChange(iconName);
@@ -124,7 +128,7 @@ export function IconPicker({
           ) : (
             <div className="grid grid-cols-6 gap-1">
               {filteredIcons.map((iconName) => {
-                const Icon = (LucideIcons as any)[iconName];
+                const Icon = iconsRecord[iconName];
                 if (!Icon) return null;
                 return (
                   <button
@@ -165,7 +169,7 @@ export function DynamicIcon({
   className?: string;
 }) {
   if (!name) return null;
-  const Icon = (LucideIcons as any)[name];
+  const Icon = iconsRecord[name];
   if (!Icon) return null;
   return <Icon className={className} />;
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -42,16 +42,9 @@ const BookingModal: React.FC<BookingModalProps> = ({
   prefilledEndTime = "10:00",
 }) => {
   const { t } = useTranslation();
-  const [date, setDate] = useState(prefilledDate);
+  const [date, setDate] = useState(prefilledDate || "");
   const [startTime, setStartTime] = useState(prefilledStartTime);
   const [endTime, setEndTime] = useState(prefilledEndTime);
-
-  // Update state when prefilled values change (e.g., from calendar clicks)
-  useEffect(() => {
-    if (prefilledDate) setDate(prefilledDate);
-    if (prefilledStartTime) setStartTime(prefilledStartTime);
-    if (prefilledEndTime) setEndTime(prefilledEndTime);
-  }, [prefilledDate, prefilledStartTime, prefilledEndTime]);
 
   const { user } = useAuth();
 

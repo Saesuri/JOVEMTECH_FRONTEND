@@ -67,10 +67,8 @@ function UserBooking() {
   const [endTime, setEndTime] = useState("10:00");
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // --- Filter State ---
   const [minCapacity, setMinCapacity] = useState<string>("");
   const [filterType, setFilterType] = useState<string>("all");
-  const [dimmedIds, setDimmedIds] = useState<string[]>([]);
 
   // --- Modal State ---
   const [selectedRoom, setSelectedRoom] = useState<RoomShape | null>(null);
@@ -116,12 +114,26 @@ function UserBooking() {
   const canvasWidth = canvasBounds.width;
   const canvasHeight = canvasBounds.height;
 
-  // Filter rooms for display in list (excluding dimmed ones)
+  const dimmedIds = useMemo(() => {
+    const idsToDim: string[] = [];
+    const capacityNum = parseInt(minCapacity) || 0;
+
+    rooms.forEach((room) => {
+      let matches = true;
+
+      if ((room.capacity ?? 0) < capacityNum) matches = false;
+      if (filterType !== "all" && room.type !== filterType) matches = false;
+
+      if (!matches) idsToDim.push(room.id);
+    });
+
+    return idsToDim;
+  }, [minCapacity, filterType, rooms]);
+
   const visibleRooms = useMemo(() => {
     return rooms.filter((room) => !dimmedIds.includes(room.id));
   }, [rooms, dimmedIds]);
 
-  // 1. Load Initial Data
   useEffect(() => {
     const initData = async () => {
       try {
@@ -142,9 +154,8 @@ function UserBooking() {
       }
     };
     initData();
-  }, []);
+  }, [t]);
 
-  // 2. Load Spaces
   useEffect(() => {
     if (!selectedFloorId) return;
     const loadSpaces = async () => {
@@ -158,7 +169,6 @@ function UserBooking() {
     loadSpaces();
   }, [selectedFloorId]);
 
-  // 3. Check Availability
   useEffect(() => {
     const fetchOccupancy = async () => {
       if (!date || !startTime || !endTime) return;
@@ -176,24 +186,6 @@ function UserBooking() {
     fetchOccupancy();
   }, [date, startTime, endTime, selectedFloorId, refreshKey]);
 
-  // 4. Handle Filters
-  useEffect(() => {
-    const idsToDim: string[] = [];
-    const capacityNum = parseInt(minCapacity) || 0;
-
-    rooms.forEach((room) => {
-      let matches = true;
-      const r = room as any;
-
-      if (r.capacity < capacityNum) matches = false;
-      if (filterType !== "all" && r.type !== filterType) matches = false;
-
-      if (!matches) idsToDim.push(room.id);
-    });
-
-    setDimmedIds(idsToDim);
-  }, [minCapacity, filterType, rooms]);
-
   const handleRoomClick = (room: RoomShape) => {
     if (dimmedIds.includes(room.id)) return;
 
@@ -209,7 +201,7 @@ function UserBooking() {
       return;
     }
 
-    if ((room as any).is_active === false) {
+    if (room.is_active === false) {
       toast.info(t("booking.messages.roomMaintenance"));
       return;
     }
@@ -243,7 +235,7 @@ function UserBooking() {
 
   // Get room status for display
   const getRoomStatus = (room: RoomShape) => {
-    if ((room as any).is_active === false) return "maintenance";
+    if (room.is_active === false) return "maintenance";
     if (occupiedIds.includes(room.id)) return "occupied";
     return "available";
   };

@@ -45,11 +45,13 @@ export const formatTimeRange = (start: string | Date, end: string | Date) => {
   const s = toDate(start);
   const e = toDate(end);
 
-  const fmt: any = new Intl.DateTimeFormat(userLocale, {
+  const fmt = new Intl.DateTimeFormat(userLocale, {
     hour: "numeric",
     minute: "2-digit",
     hour12: !isBr,
-  });
+  }) as Intl.DateTimeFormat & {
+    formatRange?: (start: Date, end: Date) => string;
+  };
 
   if (typeof fmt.formatRange === "function") {
     return fmt.formatRange(s, e);

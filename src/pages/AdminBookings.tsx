@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { bookingService, spaceService } from "../services/api";
 import type { BookingAdminResponse, SpaceWithFloor } from "../types/apiTypes";
@@ -67,21 +67,7 @@ const AdminBookings = () => {
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  useEffect(() => {
-    const lower = search.toLowerCase();
-    const res = bookings.filter(
-      (b) =>
-        (b.spaces?.name || "").toLowerCase().includes(lower) ||
-        (b.profiles?.email || "").toLowerCase().includes(lower)
-    );
-    setFilteredBookings(res);
-  }, [search, bookings]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const [allBookings, allSpaces] = await Promise.all([
@@ -97,7 +83,21 @@ const AdminBookings = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  useEffect(() => {
+    const lower = search.toLowerCase();
+    const res = bookings.filter(
+      (b) =>
+        (b.spaces?.name || "").toLowerCase().includes(lower) ||
+        (b.profiles?.email || "").toLowerCase().includes(lower)
+    );
+    setFilteredBookings(res);
+  }, [search, bookings]);
 
   const handleDelete = async (id: string) => {
     setDeletingId(id);

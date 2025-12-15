@@ -16,16 +16,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     accessToken: string | undefined
   ) => {
     if (userId && accessToken) {
-      // Set user ID for logging purposes
-      // @ts-ignore - Axios types sometimes conflict with custom common headers
       api.defaults.headers.common["x-user-id"] = userId;
-      // Set Authorization header for backend auth middleware
-      // @ts-ignore
       api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
     } else {
-      // @ts-ignore
       delete api.defaults.headers.common["x-user-id"];
-      // @ts-ignore
       delete api.defaults.headers.common["Authorization"];
     }
   };

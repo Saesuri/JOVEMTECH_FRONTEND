@@ -71,14 +71,11 @@ const RoomEditModal: React.FC<RoomEditModalProps> = ({
   const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
   const [amenityOptions, setAmenityOptions] = useState<Amenity[]>([]);
 
-  // Form state
   const [name, setName] = useState(room?.name || "");
-  const [description, setDescription] = useState(
-    (room as any)?.description || ""
-  );
-  const [capacity, setCapacity] = useState(10);
-  const [type, setType] = useState("meeting_room");
-  const [amenities, setAmenities] = useState<string[]>([]);
+  const [description, setDescription] = useState(room?.description || "");
+  const [capacity, setCapacity] = useState(room?.capacity || 10);
+  const [type, setType] = useState(room?.type || "meeting_room");
+  const [amenities, setAmenities] = useState<string[]>(room?.amenities || []);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Fetch room types and amenities from API
@@ -97,17 +94,6 @@ const RoomEditModal: React.FC<RoomEditModalProps> = ({
     };
     if (isOpen) loadOptions();
   }, [isOpen]);
-
-  // Update form state when room changes
-  useEffect(() => {
-    if (room) {
-      setName(room.name);
-      setDescription((room as any).description || "");
-      setCapacity(room.capacity || 10);
-      setType(room.type || "meeting_room");
-      setAmenities(room.amenities || []);
-    }
-  }, [room]);
 
   const handleOpenChange = (open: boolean) => {
     if (!open) onClose();

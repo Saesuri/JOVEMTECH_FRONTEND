@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
@@ -39,11 +39,7 @@ const Profile = () => {
   const [phone, setPhone] = useState("");
   const [department, setDepartment] = useState("");
 
-  useEffect(() => {
-    if (user) loadProfile();
-  }, [user]);
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     try {
       const data = await userService.getProfile(user!.id);
       setProfile(data);
@@ -57,7 +53,11 @@ const Profile = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, t]);
+
+  useEffect(() => {
+    if (user) loadProfile();
+  }, [user, loadProfile]);
 
   const handleSave = async () => {
     setSaving(true);
