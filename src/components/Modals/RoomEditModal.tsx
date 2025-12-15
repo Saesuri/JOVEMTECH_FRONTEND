@@ -1,7 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { type RoomShape } from "../../types/apiTypes";
-import { AMENITY_OPTIONS } from "../../utils/roomUtils";
+import {
+  type RoomShape,
+  type RoomType,
+  type Amenity,
+} from "../../types/apiTypes";
+import { configService } from "../../services/api";
+import { DynamicIcon } from "@/components/ui/IconPicker";
 
 // SHADCN
 import { Button } from "@/components/ui/button";
@@ -62,7 +67,11 @@ const RoomEditModal: React.FC<RoomEditModalProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  // Init State
+  // Dynamic data from API
+  const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
+  const [amenityOptions, setAmenityOptions] = useState<Amenity[]>([]);
+
+  // Form state
   const [name, setName] = useState(room?.name || "");
   const [description, setDescription] = useState(
     (room as any)?.description || ""
@@ -72,8 +81,25 @@ const RoomEditModal: React.FC<RoomEditModalProps> = ({
   const [amenities, setAmenities] = useState<string[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  // Update state when room changes
-  React.useEffect(() => {
+  // Fetch room types and amenities from API
+  useEffect(() => {
+    const loadOptions = async () => {
+      try {
+        const [types, amen] = await Promise.all([
+          configService.getRoomTypes(),
+          configService.getAmenities(),
+        ]);
+        setRoomTypes(types);
+        setAmenityOptions(amen);
+      } catch (e) {
+        console.error("Failed to load room options", e);
+      }
+    };
+    if (isOpen) loadOptions();
+  }, [isOpen]);
+
+  // Update form state when room changes
+  useEffect(() => {
     if (room) {
       setName(room.name);
       setDescription((room as any).description || "");
@@ -159,19 +185,20 @@ const RoomEditModal: React.FC<RoomEditModalProps> = ({
               <Label>{t("roomEdit.type")}</Label>
               <Select value={type} onValueChange={setType}>
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Select type..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="meeting_room">
-                    {t("roomEdit.types.meetingRoom")}
-                  </SelectItem>
-                  <SelectItem value="lab">{t("roomEdit.types.lab")}</SelectItem>
-                  <SelectItem value="auditorium">
-                    {t("roomEdit.types.auditorium")}
-                  </SelectItem>
-                  <SelectItem value="office">
-                    {t("roomEdit.types.office")}
-                  </SelectItem>
+                  {roomTypes.length === 0 ? (
+                    <SelectItem value="meeting_room" disabled>
+                      Loading...
+                    </SelectItem>
+                  ) : (
+                    roomTypes.map((rt) => (
+                      <SelectItem key={rt.id} value={rt.value}>
+                        {rt.label}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -179,25 +206,32 @@ const RoomEditModal: React.FC<RoomEditModalProps> = ({
             {/* AMENITIES GRID */}
             <div className="space-y-3">
               <Label>{t("roomEdit.amenitiesLabel")}</Label>
-              <div className="grid grid-cols-2 gap-3 border p-3 rounded-md bg-slate-50 dark:bg-slate-900/50">
-                {AMENITY_OPTIONS.map((item) => (
-                  <div key={item.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={item.id}
-                      checked={amenities.includes(item.id)}
-                      onCheckedChange={() => toggleAmenity(item.id)}
-                    />
-                    <label
-                      htmlFor={item.id}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2 cursor-pointer"
-                    >
-                      {item.icon && (
-                        <item.icon className="h-3 w-3 text-muted-foreground" />
-                      )}
-                      {t(item.labelKey)}
-                    </label>
-                  </div>
-                ))}
+              <div className="grid grid-cols-2 gap-3 border p-3 rounded-md bg-slate-50 dark:bg-slate-900/50 max-h-48 overflow-y-auto">
+                {amenityOptions.length === 0 ? (
+                  <p className="text-sm text-muted-foreground col-span-2 text-center py-2">
+                    No amenities configured
+                  </p>
+                ) : (
+                  amenityOptions.map((item) => (
+                    <div key={item.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`amenity-${item.id}`}
+                        checked={amenities.includes(item.value)}
+                        onCheckedChange={() => toggleAmenity(item.value)}
+                      />
+                      <label
+                        htmlFor={`amenity-${item.id}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex items-center gap-1.5"
+                      >
+                        <DynamicIcon
+                          name={item.icon}
+                          className="h-3.5 w-3.5 text-muted-foreground"
+                        />
+                        {item.label}
+                      </label>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 

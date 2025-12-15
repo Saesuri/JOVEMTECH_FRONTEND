@@ -70,6 +70,13 @@ export interface RoomType {
   label: string;
 }
 
+export interface Amenity {
+  id: string;
+  value: string;
+  label: string;
+  icon?: string;
+}
+
 export interface Booking {
   id: string;
   space_id: string;

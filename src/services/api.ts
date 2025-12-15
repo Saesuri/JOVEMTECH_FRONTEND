@@ -10,6 +10,7 @@ import type {
   BookingWithSpace,
   BookingAdminResponse,
   RoomType,
+  Amenity,
   UserProfile,
   AuditLog,
   SystemSettings,
@@ -112,15 +113,28 @@ export const configService = {
     const response = await api.get("/config/room-types");
     return response.data;
   },
-  createRoomType: async (data: {
-    value: string;
-    label: string;
-  }): Promise<RoomType> => {
+  // Only send label - value is auto-generated on backend
+  createRoomType: async (data: { label: string }): Promise<RoomType> => {
     const response = await api.post("/config/room-types", data);
     return response.data;
   },
   deleteRoomType: async (id: string): Promise<void> => {
     await api.delete(`/config/room-types/${id}`);
+  },
+  // Amenities CRUD
+  getAmenities: async (): Promise<Amenity[]> => {
+    const response = await api.get("/config/amenities");
+    return response.data;
+  },
+  createAmenity: async (data: {
+    label: string;
+    icon?: string;
+  }): Promise<Amenity> => {
+    const response = await api.post("/config/amenities", data);
+    return response.data;
+  },
+  deleteAmenity: async (id: string): Promise<void> => {
+    await api.delete(`/config/amenities/${id}`);
   },
   getUsers: async (): Promise<UserProfile[]> => {
     const response = await api.get("/config/users");
