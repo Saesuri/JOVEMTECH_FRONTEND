@@ -10,14 +10,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // Helper to set ID in Axios headers globally
-  const setApiUser = (userId: string | undefined) => {
-    if (userId) {
+  // Helper to set auth headers in Axios globally
+  const setApiAuth = (
+    userId: string | undefined,
+    accessToken: string | undefined
+  ) => {
+    if (userId && accessToken) {
+      // Set user ID for logging purposes
       // @ts-ignore - Axios types sometimes conflict with custom common headers
       api.defaults.headers.common["x-user-id"] = userId;
+      // Set Authorization header for backend auth middleware
+      // @ts-ignore
+      api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
     } else {
       // @ts-ignore
       delete api.defaults.headers.common["x-user-id"];
+      // @ts-ignore
+      delete api.defaults.headers.common["Authorization"];
     }
   };
 
@@ -27,10 +36,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        setApiUser(session.user.id); // Set Header
+        setApiAuth(session.user.id, session.access_token); // Set auth headers
         void checkRole(session.user.id);
       } else {
-        setApiUser(undefined); // Clear Header
+        setApiAuth(undefined, undefined); // Clear auth headers
         setLoading(false);
       }
     });
@@ -44,10 +53,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          setApiUser(session.user.id); // Set Header
+          setApiAuth(session.user.id, session.access_token); // Set auth headers
           void checkRole(session.user.id);
         } else {
-          setApiUser(undefined); // Clear Header
+          setApiAuth(undefined, undefined); // Clear auth headers
           setIsAdmin(false);
           setLoading(false);
         }
@@ -75,7 +84,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
-    setApiUser(undefined);
+    setApiAuth(undefined, undefined);
     await supabase.auth.signOut();
   };
 
