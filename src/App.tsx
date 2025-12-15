@@ -160,99 +160,15 @@ const router = createBrowserRouter([
 
 function App() {
   return (
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-      <AuthProvider>
-        <RouterProvider router={router} />
-      </AuthProvider>
-    </ThemeProvider>
-=======
-=======
->>>>>>> Stashed changes
     <ErrorBoundary>
       <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
         <AuthProvider>
-          <BrowserRouter>
-            {/* Global Toaster for notifications */}
-            <Toaster position="top-right" richColors />
-
-            {/* Navigation Bar (visible on all pages if logged in) */}
-            <Navbar />
-
-            <main className="flex-1 bg-background">
-              <Routes>
-                {/* Public Route */}
-                <Route path="/login" element={<Login />} />
-                <Route
-                  path="/profile" // <--- NEW ROUTE
-                  element={
-                    <ProtectedRoute>
-                      <Profile />
-                    </ProtectedRoute>
-                  }
-                />
-
-                {/* --- ADMIN ROUTES --- */}
-                <Route
-                  path="/admin"
-                  element={
-                    <ProtectedRoute requireAdmin={true}>
-                      <AdminEditor />
-                    </ProtectedRoute>
-                  }
-                />
-
-                <Route
-                  path="/admin/bookings"
-                  element={
-                    <ProtectedRoute requireAdmin={true}>
-                      <AdminBookings />
-                    </ProtectedRoute>
-                  }
-                />
-
-                {/* --- USER ROUTES --- */}
-                <Route
-                  path="/book"
-                  element={
-                    <ProtectedRoute>
-                      <UserBooking />
-                    </ProtectedRoute>
-                  }
-                />
-
-                <Route
-                  path="/my-bookings"
-                  element={
-                    <ProtectedRoute>
-                      <MyBookings />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/settings"
-                  element={
-                    <ProtectedRoute requireAdmin={true}>
-                      <AdminSettings />
-                    </ProtectedRoute>
-                  }
-                />
-
-                {/* Default Redirect */}
-                <Route path="/" element={<Navigate to="/book" />} />
-              </Routes>
-              <HelpBtn />
-            </main>
-          </BrowserRouter>
+          <RouterProvider router={router} />
         </AuthProvider>
       </ThemeProvider>
     </ErrorBoundary>
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
   );
 }
 
 export default App;
+
